@@ -47,7 +47,7 @@ export default function CognitiveChatInterface() {
 
   // Simulate reasoning steps and thinking stages for demonstration
   useEffect(() => {
-    if (isLoading && selectedModel === 'deepseek') {
+    if (isLoading && (selectedModel === 'deepseek' || selectedModel === 'groq')) {
       setIsThinking(true);
       setReasoningSteps([]);
       setThinkingStage('analyzing');
@@ -166,11 +166,13 @@ export default function CognitiveChatInterface() {
         <SuggestionChips onSuggestionClick={handleSuggestionClick} />
 
         {/* AI Thinking Indicator */}
-        {isThinking && selectedModel === 'deepseek' && (
+        {isThinking && (selectedModel === 'deepseek' || selectedModel === 'groq') && (
           <div className="px-4 py-2">
             <AIThinkingIndicator
               stage={thinkingStage}
-              message="يعمل النموذج على تحليل طلبك وصياغة إجابة شاملة..."
+              message={selectedModel === 'deepseek' 
+                ? "يعمل النموذج على تحليل طلبك وصياغة إجابة شاملة..." 
+                : "معالجة فائقة السرعة لطلبك..."}
               progress={Math.min((reasoningSteps.length / 3) * 100, 100)}
             />
           </div>

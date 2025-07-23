@@ -19,8 +19,8 @@ export class GeminiProvider implements AIProvider {
   async generateResponse(prompt: string, options: any = {}): Promise<string> {
     try {
       const response = await this.ai.models.generateContent({
-        model: "gemini-2.5-flash",
-        contents: prompt,
+        model: "gemini-2.0-flash-exp",
+        contents: `أجب باللغة العربية. ${prompt}`,
         config: options.config || {},
       });
 
@@ -36,7 +36,9 @@ export class GeminiProvider implements AIProvider {
   }
 
   isAvailable(): boolean {
-    return !!(process.env.GEMINI_API_KEY || process.env.GOOGLE_AI_API_KEY);
+    const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_AI_API_KEY;
+    console.log('Gemini API Key check:', apiKey ? 'Available' : 'Missing');
+    return !!apiKey;
   }
 }
 
@@ -49,18 +51,18 @@ export class DeepSeekProvider implements AIProvider {
     }
 
     try {
-      const response = await fetch("https://api.deepseek.com/chat/completions", {
+      const response = await fetch("https://api.deepseek.com/v1/chat/completions", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${apiKey}`,
         },
         body: JSON.stringify({
-          model: "deepseek-reasoner",
+          model: "deepseek-chat",
           messages: [
             {
               role: "system", 
-              content: "You are a helpful AI assistant. Think step by step and show your reasoning process when needed."
+              content: "أنت مساعد ذكي ومفيد. فكر خطوة بخطوة وأظهر عملية التفكير عند الحاجة. أجب باللغة العربية."
             },
             {
               role: "user",
@@ -90,7 +92,9 @@ export class DeepSeekProvider implements AIProvider {
   }
 
   isAvailable(): boolean {
-    return !!process.env.DEEPSEEK_API_KEY;
+    const apiKey = process.env.DEEPSEEK_API_KEY;
+    console.log('DeepSeek API Key check:', apiKey ? 'Available' : 'Missing');
+    return !!apiKey;
   }
 }
 
@@ -109,11 +113,11 @@ export class GroqProvider implements AIProvider {
           "Authorization": `Bearer ${apiKey}`,
         },
         body: JSON.stringify({
-          model: "qwen-qwq-32b",
+          model: "llama3-8b-8192",
           messages: [
             {
               role: "system",
-              content: "You are a helpful AI assistant. Provide fast and accurate responses."
+              content: "أنت مساعد ذكي وسريع. قدم إجابات دقيقة وسريعة باللغة العربية."
             },
             {
               role: "user",
@@ -142,7 +146,9 @@ export class GroqProvider implements AIProvider {
   }
 
   isAvailable(): boolean {
-    return !!process.env.GROQ_API_KEY;
+    const apiKey = process.env.GROQ_API_KEY;
+    console.log('Groq API Key check:', apiKey ? 'Available' : 'Missing');
+    return !!apiKey;
   }
 }
 
@@ -161,11 +167,11 @@ export class TogetherProvider implements AIProvider {
           "Authorization": `Bearer ${apiKey}`,
         },
         body: JSON.stringify({
-          model: "deepseek-ai/DeepSeek-V3",
+          model: "meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo",
           messages: [
             {
               role: "system",
-              content: "You are a helpful AI assistant powered by open-source models. Provide thoughtful and detailed responses."
+              content: "أنت مساعد ذكي مدعوم بنماذج مفتوحة المصدر. قدم إجابات مدروسة ومفصلة باللغة العربية."
             },
             {
               role: "user",
@@ -194,7 +200,9 @@ export class TogetherProvider implements AIProvider {
   }
 
   isAvailable(): boolean {
-    return !!process.env.TOGETHER_API_KEY;
+    const apiKey = process.env.TOGETHER_API_KEY;
+    console.log('Together API Key check:', apiKey ? 'Available' : 'Missing');
+    return !!apiKey;
   }
 }
 

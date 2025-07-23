@@ -54,9 +54,9 @@ export class MemStorage implements IStorage {
       {
         id: 'groq',
         name: 'Groq',
-        description: 'استجابة فورية',
+        description: 'استجابة فورية (يحتاج إعداد مفتاح)',
         provider: 'groq',
-        available: true,
+        available: false,
         features: ['text', 'ultra-fast'],
         icon: 'GQ',
         color: 'orange'
@@ -64,9 +64,9 @@ export class MemStorage implements IStorage {
       {
         id: 'together',
         name: 'Together',
-        description: 'مفتوح المصدر',
+        description: 'مفتوح المصدر (يحتاج إعداد مفتاح)',
         provider: 'together',
-        available: true,
+        available: false,
         features: ['text', 'open-source'],
         icon: 'TG',
         color: 'purple'
