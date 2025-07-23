@@ -3,64 +3,57 @@
 import { useState } from "react"
 import { Button } from "./ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog"
-import { Separator } from "./ui/separator"
-import { Settings, ChevronDown } from "lucide-react"
+import { Label } from "./ui/label"
+import { ChevronDown, Bot } from "lucide-react"
 
-const ModelSelector = ({ selectedModel, onModelChange, onSettingsOpen }) => {
+const models = [
+  { id: "deepseek", name: "DeepSeek", description: "Advanced reasoning model" },
+  { id: "groq", name: "Groq", description: "Fast inference model" },
+  { id: "together", name: "Together AI", description: "Collaborative AI model" },
+  { id: "gemini", name: "Gemini", description: "Google's multimodal AI" },
+]
+
+export default function ModelSelector({ selectedModel, onModelChange }) {
   const [isOpen, setIsOpen] = useState(false)
-
-  const models = [
-    { id: "deepseek", name: "DeepSeek", provider: "DeepSeek" },
-    { id: "groq", name: "Groq Qwen", provider: "Groq" },
-    { id: "together", name: "DeepSeek V3", provider: "Together" },
-    { id: "gemini", name: "Gemini", provider: "Google" },
-  ]
 
   const currentModel = models.find((m) => m.id === selectedModel) || models[0]
 
   return (
     <>
-      <div className="flex items-center gap-2">
-        <Button
-          variant="outline"
-          onClick={() => setIsOpen(true)}
-          className="flex items-center gap-2 min-w-[140px] justify-between"
-        >
-          <div className="flex flex-col items-start">
-            <span className="text-sm font-medium">{currentModel.name}</span>
-            <span className="text-xs text-muted-foreground">{currentModel.provider}</span>
-          </div>
-          <ChevronDown className="h-4 w-4" />
-        </Button>
-
-        <Button variant="outline" size="icon" onClick={onSettingsOpen} className="h-10 w-10 bg-transparent">
-          <Settings className="h-4 w-4" />
-        </Button>
-      </div>
+      <Button
+        variant="outline"
+        onClick={() => setIsOpen(true)}
+        className="flex items-center gap-2 min-w-[150px] justify-between"
+      >
+        <div className="flex items-center gap-2">
+          <Bot className="h-4 w-4" />
+          <span>{currentModel.name}</span>
+        </div>
+        <ChevronDown className="h-4 w-4" />
+      </Button>
 
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Select AI Model</DialogTitle>
+            <DialogTitle>اختر نموذج الذكاء الاصطناعي</DialogTitle>
           </DialogHeader>
-
-          <div className="space-y-4">
+          <div className="grid gap-4 py-4">
             {models.map((model) => (
-              <div key={model.id}>
-                <Button
-                  variant={selectedModel === model.id ? "default" : "ghost"}
-                  className="w-full justify-start h-auto p-4"
-                  onClick={() => {
-                    onModelChange(model.id)
-                    setIsOpen(false)
-                  }}
-                >
-                  <div className="flex flex-col items-start">
-                    <span className="font-medium">{model.name}</span>
-                    <span className="text-sm text-muted-foreground">{model.provider}</span>
-                  </div>
-                </Button>
-                {model.id !== models[models.length - 1].id && <Separator className="mt-2" />}
+              <div
+                key={model.id}
+                className={`flex items-center space-x-2 p-3 rounded-lg border cursor-pointer transition-colors ${
+                  selectedModel === model.id ? "border-primary bg-primary/5" : "border-border hover:bg-accent"
+                }`}
+                onClick={() => {
+                  onModelChange(model.id)
+                  setIsOpen(false)
+                }}
+              >
+                <div className="flex-1">
+                  <Label className="font-medium cursor-pointer">{model.name}</Label>
+                  <p className="text-sm text-muted-foreground">{model.description}</p>
+                </div>
+                {selectedModel === model.id && <div className="h-2 w-2 rounded-full bg-primary" />}
               </div>
             ))}
           </div>
@@ -69,5 +62,3 @@ const ModelSelector = ({ selectedModel, onModelChange, onSettingsOpen }) => {
     </>
   )
 }
-
-export default ModelSelector

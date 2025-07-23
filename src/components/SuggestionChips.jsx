@@ -1,14 +1,14 @@
 "use client"
 
-import React, { useState } from "react"
-import { ImageIcon, FileText, Clock, Code, Lightbulb, Calculator, Globe, Music } from "lucide-react"
+import { useState } from "react"
 import { Button } from "./ui/button"
+import { ImageIcon, FileText, Clock, Code, Lightbulb, Calculator, Globe, Music } from "lucide-react"
 
-const SuggestionChips = ({ onSuggestionClick }) => {
+const SuggestionChips = ({ onSuggestionClick, disabled }) => {
   const [hoveredChip, setHoveredChip] = useState(null)
 
   // الاقتراحات مع الأيقونات والألوان
-  const suggestions = [
+  const suggestionsWithIcons = [
     {
       icon: ImageIcon,
       text: "تعديل الصورة",
@@ -65,11 +65,9 @@ const SuggestionChips = ({ onSuggestionClick }) => {
       color: "#5f27cd",
       category: "فن",
     },
-    "ما هي أحدث التطورات في الذكاء الاصطناعي؟",
-    "اشرح لي مفهوم التعلم العميق",
-    "كيف يمكنني تحسين مهاراتي في البرمجة؟",
-    "ما هي أفضل الممارسات في تطوير الويب؟",
   ]
+
+  const simpleSuggestions = ["ما هو الذكاء الاصطناعي؟", "اشرح لي البرمجة", "ساعدني في كتابة كود", "أريد تعلم شيء جديد"]
 
   const handleChipClick = (suggestion) => {
     if (typeof suggestion === "object") {
@@ -87,48 +85,53 @@ const SuggestionChips = ({ onSuggestionClick }) => {
       </div>
 
       <div className="suggestion-chips">
-        {suggestions.map((suggestion, index) => (
-          <React.Fragment key={index}>
-            {typeof suggestion === "object" ? (
-              <button
-                className={`suggestion-chip ${hoveredChip === index ? "hovered" : ""}`}
-                onClick={() => handleChipClick(suggestion)}
-                onMouseEnter={() => setHoveredChip(index)}
-                onMouseLeave={() => setHoveredChip(null)}
-                style={{
-                  "--chip-color": suggestion.color,
-                  "--animation-delay": `${index * 0.1}s`,
-                }}
-              >
-                <div className="chip-background"></div>
-                <div className="chip-content">
-                  <div className="chip-icon-wrapper">
-                    <suggestion.icon size={20} className="chip-icon" />
-                  </div>
-                  <div className="chip-text-wrapper">
-                    <span className="chip-text">{suggestion.text}</span>
-                    <span className="chip-category">{suggestion.category}</span>
-                  </div>
-                </div>
-                <div className="chip-hover-effect"></div>
-              </button>
-            ) : (
-              <Button
-                variant="outline"
-                onClick={() => handleChipClick(suggestion)}
-                className="suggestion-chip text-sm px-4 py-2 rounded-full border-gray-300 hover:border-blue-500 hover:bg-blue-50 transition-colors"
-              >
-                {suggestion}
-              </Button>
-            )}
-          </React.Fragment>
+        {suggestionsWithIcons.map((suggestion, index) => (
+          <button
+            key={index}
+            className={`suggestion-chip ${hoveredChip === index ? "hovered" : ""}`}
+            onClick={() => handleChipClick(suggestion)}
+            onMouseEnter={() => setHoveredChip(index)}
+            onMouseLeave={() => setHoveredChip(null)}
+            style={{
+              "--chip-color": suggestion.color,
+              "--animation-delay": `${index * 0.1}s`,
+            }}
+            disabled={disabled}
+          >
+            <div className="chip-background"></div>
+            <div className="chip-content">
+              <div className="chip-icon-wrapper">
+                <suggestion.icon size={20} className="chip-icon" />
+              </div>
+              <div className="chip-text-wrapper">
+                <span className="chip-text">{suggestion.text}</span>
+                <span className="chip-category">{suggestion.category}</span>
+              </div>
+            </div>
+            <div className="chip-hover-effect"></div>
+          </button>
+        ))}
+      </div>
+
+      <div className="flex flex-wrap gap-2 p-4">
+        {simpleSuggestions.map((suggestion, index) => (
+          <Button
+            key={index}
+            variant="outline"
+            size="sm"
+            onClick={() => handleChipClick(suggestion)}
+            disabled={disabled}
+            className="text-sm"
+          >
+            {suggestion}
+          </Button>
         ))}
       </div>
 
       {/* مؤشر التمرير للجوال */}
       <div className="scroll-indicator">
         <div className="scroll-dots">
-          {Array.from({ length: Math.ceil(suggestions.length / 2) }).map((_, index) => (
+          {Array.from({ length: Math.ceil(suggestionsWithIcons.length / 2) }).map((_, index) => (
             <div key={index} className="scroll-dot"></div>
           ))}
         </div>
