@@ -59,21 +59,21 @@ export async function POST(request) {
       case "groq":
         apiUrl = process.env.GROQ_API_URL || "https://api.groq.com/openai/v1/chat/completions"
         apiKey = process.env.GROQ_API_KEY
-        modelName = process.env.GROQ_API_MODEL || "llama-3.1-70b-versatile"
+        modelName = process.env.GROQ_API_MODEL || "qwen/qwen3-32b"
         break
 
       case "together":
         apiUrl = process.env.TOGETHER_API_URL || "https://api.together.xyz/v1/chat/completions"
         apiKey = process.env.TOGETHER_API_KEY
-        modelName = process.env.TOGETHER_API_MODEL || "meta-llama/Llama-3.2-11B-Vision-Instruct-Turbo"
+        modelName = process.env.TOGETHER_API_MODEL || "deepseek-ai/DeepSeek-R1-Distill-Llama-70B-free"
         break
 
       case "gemini":
         apiUrl =
           process.env.GENERATE_CONTENT_API ||
-          "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent"
+          "https://generativelanguage.googleapis.com"
         apiKey = process.env.GEMINI_API_KEY
-        modelName = process.env.MODEL_ID || "gemini-1.5-flash-latest"
+        modelName = process.env.MODEL_ID || "gemini-2.5-pro"
         break
 
       default:
@@ -119,7 +119,7 @@ export async function POST(request) {
         ],
         generationConfig: {
           temperature: 0.7,
-          maxOutputTokens: 2048,
+          maxOutputTokens: 4800,
         },
       }
       requestHeaders = {
@@ -136,7 +136,7 @@ export async function POST(request) {
           { role: "user", content: message },
         ],
         temperature: 0.7,
-        max_tokens: 2048,
+        max_tokens: 4800,
       }
       requestHeaders = {
         "Content-Type": "application/json",
