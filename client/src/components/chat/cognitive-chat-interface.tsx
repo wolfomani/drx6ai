@@ -47,16 +47,26 @@ export default function CognitiveChatInterface() {
 
   // Simulate reasoning steps and thinking stages for demonstration
   useEffect(() => {
-    if (isLoading && (selectedModel === 'deepseek' || selectedModel === 'groq')) {
+    if (isLoading && (selectedModel === 'deepseek' || selectedModel === 'gemini')) {
       setIsThinking(true);
       setReasoningSteps([]);
       setThinkingStage('analyzing');
       
-      const steps = [
-        { id: '1', type: 'thinking' as const, content: 'أحلل السؤال وأفهم السياق المطلوب...', timestamp: new Date(), confidence: 0.85 },
-        { id: '2', type: 'analysis' as const, content: 'أبحث في قاعدة المعرفة للعثور على المعلومات الأكثر دقة...', timestamp: new Date(), confidence: 0.92 },
-        { id: '3', type: 'conclusion' as const, content: 'أصيغ الإجابة بطريقة واضحة ومفيدة للمستخدم...', timestamp: new Date(), confidence: 0.98 }
-      ];
+      let steps: ReasoningStep[];
+      
+      if (selectedModel === 'deepseek') {
+        steps = [
+          { id: '1', type: 'thinking' as const, content: 'أحلل السؤال وأفهم السياق المطلوب باستخدام تقنيات التفكير المتقدم...', timestamp: new Date(), confidence: 0.85 },
+          { id: '2', type: 'analysis' as const, content: 'أبحث في قاعدة المعرفة والذاكرة طويلة المدى للعثور على المعلومات الأكثر دقة...', timestamp: new Date(), confidence: 0.92 },
+          { id: '3', type: 'conclusion' as const, content: 'أصيغ الإجابة بطريقة واضحة ومنطقية مع التأكد من جودة المحتوى...', timestamp: new Date(), confidence: 0.98 }
+        ];
+      } else {
+        steps = [
+          { id: '1', type: 'thinking' as const, content: 'أستخدم نموذج التفكير المتقدم لفهم طلبك بعمق...', timestamp: new Date(), confidence: 0.88 },
+          { id: '2', type: 'analysis' as const, content: 'أدمج المعلومات من مصادر متعددة وأحللها بدقة...', timestamp: new Date(), confidence: 0.94 },
+          { id: '3', type: 'conclusion' as const, content: 'أقدم إجابة شاملة ومفيدة باللغة العربية...', timestamp: new Date(), confidence: 0.96 }
+        ];
+      }
 
       const stages: Array<'analyzing' | 'processing' | 'generating'> = ['analyzing', 'processing', 'generating'];
       let currentStep = 0;
@@ -76,7 +86,7 @@ export default function CognitiveChatInterface() {
           setIsThinking(false);
           setThinkingStage('complete');
         }
-      }, 1500);
+      }, selectedModel === 'gemini' ? 800 : 1500); // Gemini أسرع
 
       return () => clearInterval(interval);
     }
@@ -166,20 +176,20 @@ export default function CognitiveChatInterface() {
         <SuggestionChips onSuggestionClick={handleSuggestionClick} />
 
         {/* AI Thinking Indicator */}
-        {isThinking && (selectedModel === 'deepseek' || selectedModel === 'groq') && (
+        {isThinking && (selectedModel === 'deepseek' || selectedModel === 'gemini') && (
           <div className="px-4 py-2">
             <AIThinkingIndicator
               stage={thinkingStage}
               message={selectedModel === 'deepseek' 
-                ? "يعمل النموذج على تحليل طلبك وصياغة إجابة شاملة..." 
-                : "معالجة فائقة السرعة لطلبك..."}
+                ? "نموذج التفكير المتقدم يحلل طلبك بعمق..." 
+                : "نموذج التفكير السريع ينتج إجابة مثلى..."}
               progress={Math.min((reasoningSteps.length / 3) * 100, 100)}
             />
           </div>
         )}
 
         {/* Reasoning Display */}
-        {(reasoningSteps.length > 0 || isThinking) && selectedModel === 'deepseek' && (
+        {(reasoningSteps.length > 0 || isThinking) && (selectedModel === 'deepseek' || selectedModel === 'gemini') && (
           <div className="px-4">
             <ReasoningDisplay 
               steps={reasoningSteps} 

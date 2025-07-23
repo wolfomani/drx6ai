@@ -19,9 +19,41 @@ export class GeminiProvider implements AIProvider {
   async generateResponse(prompt: string, options: any = {}): Promise<string> {
     try {
       const response = await this.ai.models.generateContent({
-        model: "gemini-2.0-flash-exp",
-        contents: `أجب باللغة العربية. ${prompt}`,
-        config: options.config || {},
+        model: "gemini-2.0-flash-thinking-exp",
+        contents: [
+          {
+            role: "user",
+            parts: [
+              {
+                text: `أجب باللغة العربية. ${prompt}`
+              }
+            ]
+          }
+        ],
+        generationConfig: {
+          thinkingConfig: {
+            thinkingBudget: -1,
+          },
+          responseMimeType: "text/plain",
+        },
+        safetySettings: [
+          {
+            category: "HARM_CATEGORY_HARASSMENT",
+            threshold: "BLOCK_NONE"
+          },
+          {
+            category: "HARM_CATEGORY_HATE_SPEECH", 
+            threshold: "BLOCK_NONE"
+          },
+          {
+            category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+            threshold: "BLOCK_NONE"
+          },
+          {
+            category: "HARM_CATEGORY_DANGEROUS_CONTENT",
+            threshold: "BLOCK_NONE"
+          }
+        ]
       });
 
       return response.text || "عذراً، لم أتمكن من إنتاج إجابة.";
@@ -51,7 +83,7 @@ export class DeepSeekProvider implements AIProvider {
     }
 
     try {
-      const response = await fetch("https://api.deepseek.com/v1/chat/completions", {
+      const response = await fetch("https://api.deepseek.com/chat/completions", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -113,7 +145,7 @@ export class GroqProvider implements AIProvider {
           "Authorization": `Bearer ${apiKey}`,
         },
         body: JSON.stringify({
-          model: "llama3-8b-8192",
+          model: "qwen/qwen3-32b",
           messages: [
             {
               role: "system",
@@ -124,8 +156,10 @@ export class GroqProvider implements AIProvider {
               content: prompt
             }
           ],
-          temperature: 0.7,
-          max_tokens: 2048,
+          temperature: 0.6,
+          max_completion_tokens: 4096,
+          top_p: 0.95,
+          reasoning_effort: "default",
         }),
       });
 
