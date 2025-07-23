@@ -31,4 +31,5 @@ const viteConfig = defineConfig({
   },
 })
 
+export { viteConfig }
 export default viteConfig
