@@ -1,10 +1,10 @@
 {
+  "framework": "vite",
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
   "functions": {
-    "app/api/chat/route.js": {
+    "app/api/**/*.js": {
       "maxDuration": 60
-    },
-    "app/api/debug/route.js": {
-      "maxDuration": 30
     }
   },
   "rewrites": [
