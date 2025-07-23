@@ -7,6 +7,7 @@ const ChatInput = ({ onSendMessage, isLoading, isInitialScreen }) => {
   const [message, setMessage] = useState("")
   const textareaRef = useRef(null)
 
+  // تأثير جانبي لضبط ارتفاع مربع النص
   useEffect(() => {
     if (textareaRef.current) {
       textareaRef.current.style.height = "auto"
@@ -14,6 +15,7 @@ const ChatInput = ({ onSendMessage, isLoading, isInitialScreen }) => {
     }
   }, [message])
 
+  // التعامل مع النقر على أزرار الوضع
   const handleModeClick = (mode) => {
     if (message.trim()) {
       onSendMessage(message.trim(), mode)
@@ -24,6 +26,7 @@ const ChatInput = ({ onSendMessage, isLoading, isInitialScreen }) => {
     }
   }
 
+  // التعامل مع إرسال النموذج
   const handleSubmit = (e) => {
     e.preventDefault()
     if (message.trim() && !isLoading) {
@@ -35,6 +38,7 @@ const ChatInput = ({ onSendMessage, isLoading, isInitialScreen }) => {
     }
   }
 
+  // التعامل مع ضغطات المفاتيح (خاصة Enter للإرسال)
   const handleKeyDown = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault()
@@ -42,6 +46,7 @@ const ChatInput = ({ onSendMessage, isLoading, isInitialScreen }) => {
     }
   }
 
+  // التحقق مما إذا كانت الرسالة صالحة للإرسال
   const isMessageValid = message.trim().length > 0
 
   return (
@@ -50,24 +55,28 @@ const ChatInput = ({ onSendMessage, isLoading, isInitialScreen }) => {
         <div className={`input-wrapper ${isLoading ? "loading" : ""}`}>
           {isLoading && <div className="loading-bar"></div>}
 
-          {isInitialScreen && (
+          {/* النص "أرسل رسالة إلى dr.x" فوق حقل الإدخال */}
+          {isInitialScreen && ( // يظهر فقط في الشاشة الابتدائية
             <div className="input-label-container">
               <span className="input-label-text">أرسل رسالة إلى dr.x</span>
             </div>
           )}
 
+          {/* مربع إدخال الرسالة */}
           <textarea
             ref={textareaRef}
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder=""
+            placeholder="" // لا يوجد placeholder مرئي في الصورة
             className="message-input"
             disabled={isLoading}
             rows={1}
           />
 
+          {/* عناصر التحكم في الإدخال */}
           <div className="input-controls">
+            {/* زر الإرسال على اليسار */}
             <button
               type="submit"
               className={`send-button ${isMessageValid ? "active" : ""} ${isLoading ? "loading" : ""}`}
@@ -77,6 +86,7 @@ const ChatInput = ({ onSendMessage, isLoading, isInitialScreen }) => {
               {isLoading ? <div className="loading-spinner"></div> : <Send size={18} />}
             </button>
 
+            {/* أزرار الأوضاع على اليمين */}
             <div className="mode-buttons">
               <button
                 type="button"
@@ -85,22 +95,23 @@ const ChatInput = ({ onSendMessage, isLoading, isInitialScreen }) => {
                 disabled={!isMessageValid || isLoading}
                 title="تفكير عميق مع DeepSeek R1"
               >
-                🧠 تفكير عميق (R1)
+                🧠 تفكير عميق (R1) {/* تم تغيير النص ليتطابق تماماً مع الصورة */}
               </button>
               <button
                 type="button"
-                className="mode-button search-mode"
-                onClick={() => handleModeClick("planets")}
+                className="mode-button search-mode" // إضافة فئة جديدة للبحث إذا لزم الأمر
+                onClick={() => handleModeClick("planets")} // استخدام وضع الكواكب كـ "بحث"
                 disabled={!isMessageValid || isLoading}
                 title="بحث متقدم"
               >
-                🌐 بحث
+                🌐 بحث {/* تم تغيير النص ليتطابق تماماً مع الصورة */}
               </button>
             </div>
           </div>
         </div>
       </form>
 
+      {/* عداد الأحرف - يبقى كما هو */}
       {message.length > 0 && (
         <div className="character-counter">
           <span className={message.length > 2000 ? "warning" : ""}>{message.length} / 2000</span>

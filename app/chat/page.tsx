@@ -2,12 +2,12 @@
 
 import { useState, useRef, useEffect } from "react"
 import { Search } from "lucide-react"
-import ModelSelector from "../components/ModelSelector"
-import ChatInput from "../components/ChatInput"
-import { ChatMessages } from "../components/ChatMessages"
-import { useMessages } from "../hooks/use-messages"
-import { chatModels } from "../lib/models"
-import "./App.css"
+import ModelSelector from "../../components/ModelSelector"
+import ChatInput from "../../components/ChatInput"
+import { ChatMessages } from "../../components/ChatMessages"
+import { useMessages } from "../../hooks/use-messages"
+import { chatModels } from "../../lib/models"
+import "../App.css"
 
 function App() {
   const [messages, setMessages] = useState([])
@@ -20,6 +20,7 @@ function App() {
     status: isLoading ? "streaming" : "idle",
   })
 
+  // دالة لعرض نص الوضع بناءً على الوضع المحدد
   const getModeDisplayText = (mode) => {
     switch (mode) {
       case "reasoning":
@@ -27,15 +28,17 @@ function App() {
       case "expert":
         return "👨‍💻 [وضع الخبير المطلق]"
       case "planets":
-        return "🌐 [بحث]"
+        return "🔭 [بحث الكواكب]"
       default:
         return ""
     }
   }
 
+  // دالة لإرسال الرسالة
   const handleSendMessage = async (message, mode = "default") => {
     if (!message.trim() || isLoading) return
 
+    // أضف معلومات الوضع للرسالة المعروضة
     let displayMessage = message
     const modeText = getModeDisplayText(mode)
     if (modeText) {
@@ -52,6 +55,7 @@ function App() {
     setMessages((prev) => [...prev, userMessage])
     setIsLoading(true)
 
+    // إلغاء أي طلب سابق إذا كان موجوداً
     if (abortControllerRef.current) {
       abortControllerRef.current.abort()
     }
@@ -69,6 +73,7 @@ function App() {
         mode: mode,
       }
 
+      // إرسال طلب إلى API
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: {
@@ -148,15 +153,18 @@ function App() {
     }
   }
 
+  // التعامل مع النقر على الاقتراحات (لم تعد مرئية في الشاشة الابتدائية)
   const handleSuggestionClick = (suggestion) => {
     handleSendMessage(suggestion)
   }
 
+  // التعامل مع تغيير النموذج (لم يعد مرئياً في الشاشة الابتدائية)
   const handleModelChange = (modelId) => {
     setSelectedModel(modelId)
     console.log("تم تغيير النموذج إلى:", modelId)
   }
 
+  // تنظيف عند إلغاء تحميل المكون
   useEffect(() => {
     return () => {
       if (abortControllerRef.current) {
@@ -169,8 +177,10 @@ function App() {
 
   return (
     <div className="app-container">
+      {/* شريط التنقل العلوي - يبقى كما هو */}
       <nav className="top-nav">
         <div className="nav-logo">
+          {/* شعار Dr.X */}
           <img src="/drx-logo.png" alt="Dr.X" className="logo-img" />
         </div>
         <div className="nav-actions">
@@ -181,32 +191,49 @@ function App() {
         </div>
       </nav>
 
+      {/* المحتوى الرئيسي */}
       <main className={`main-container ${hasMessages ? "with-messages" : ""}`}>
         {!hasMessages && (
+          // هذا القسم يظهر فقط عندما لا توجد رسائل (الشاشة الابتدائية)
           <>
+            {/* شعار Dr.X في المنتصف عند عدم وجود رسائل */}
             <div className="main-logo animate-fade-in">
               <img src="/drx-logo.png" alt="Dr.X" className="main-logo-img" />
             </div>
 
-            <h1 className="welcome-title animate-fade-in">مرحباً. أنا dr.x.</h1>
-            <p className="welcome-subtitle animate-fade-in">كيف يمكنني مساعدتك اليوم؟</p>
+            {/* رسالة الترحيب - تم تغيير النص هنا */}
+            <h1 className="text-2xl font-bold text-center mb-2 animate-fade-in" style={{ animationDelay: "0.2s" }}>
+              مرحباً. أنا dr.x.
+            </h1>
+            <p className="text-muted-foreground text-center mb-8 animate-fade-in" style={{ animationDelay: "0.4s" }}>
+              كيف يمكنني مساعدتك اليوم؟
+            </p>
+
+            {/* محدد النموذج وشرائح الاقتراحات لم تعد مرئية في الشاشة الابتدائية */}
+            {/* <ModelSelector selectedModel={selectedModel} onModelChange={handleModelChange} models={chatModels} /> */}
+            {/* <SuggestionChips onSuggestionClick={handleSuggestionClick} /> */}
           </>
         )}
 
         {hasMessages && (
+          // هذا القسم يظهر عندما توجد رسائل
           <>
+            {/* محدد النموذج في الأعلى عند وجود رسائل */}
             <div style={{ alignSelf: "flex-start", marginBottom: "1rem" }}>
               <ModelSelector selectedModel={selectedModel} onModelChange={handleModelChange} models={chatModels} />
             </div>
 
+            {/* حاوية الرسائل */}
             <div ref={containerRef} className="messages-container flex-1 overflow-y-auto">
               <ChatMessages messages={messages} isLoading={isLoading} />
             </div>
           </>
         )}
 
+        {/* حقل إدخال الدردشة - دائماً في الأسفل */}
         <ChatInput onSendMessage={handleSendMessage} isLoading={isLoading} isInitialScreen={!hasMessages} />
 
+        {/* نص التذييل */}
         <p className="footer-text">
           بإرسالك رسالة إلى dr.x، فإنك توافق على{" "}
           <a href="https://x.ai/legal/terms-of-service" target="_blank" rel="noopener noreferrer">
@@ -223,6 +250,6 @@ function App() {
   )
 }
 
-export default function Page() {
+export default function ChatPage() {
   return <App />
 }
