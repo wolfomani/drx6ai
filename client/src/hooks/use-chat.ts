@@ -1,69 +1,70 @@
-import { useState, useEffect } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
-import type { Message, ChatRequest, ChatResponse } from "@shared/schema";
+"use client"
 
-export function useChat(conversationId?: number, selectedModel: string = "deepseek") {
-  const [currentConversationId, setCurrentConversationId] = useState<number | undefined>(conversationId);
-  const queryClient = useQueryClient();
-  const { toast } = useToast();
+import type React from "react"
 
-  // Fetch messages for current conversation
-  const { data: messages = [], isLoading: messagesLoading } = useQuery<Message[]>({
-    queryKey: ["/api/conversations", currentConversationId, "messages"],
-    enabled: !!currentConversationId,
-  });
+import { useState, useCallback } from "react"
+import { apiRequest } from "@/lib/queryClient" // Assuming apiRequest is in queryClient.ts
 
-  // Send message mutation
-  const sendMessageMutation = useMutation({
-    mutationFn: async (data: ChatRequest): Promise<ChatResponse> => {
-      const response = await apiRequest("POST", "/api/chat", data);
-      return response.json();
+interface Message {
+  id: string
+  role: "user" | "assistant" | "system"
+  content: string
+}
+
+interface UseChatOptions {
+  initialMessages?: Message[]
+  apiEndpoint?: string
+}
+
+export function useChat({ initialMessages = [], apiEndpoint = "/api/chat" }: UseChatOptions = {}) {
+  const [messages, setMessages] = useState<Message[]>(initialMessages)
+  const [input, setInput] = useState("")
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<Error | null>(null)
+
+  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setInput(e.target.value)
+  }, [])
+
+  const handleSubmit = useCallback(
+    async (e: React.FormEvent<HTMLFormElement>) => {
+      e.preventDefault()
+      if (!input.trim()) return
+
+      const newMessage: Message = { id: Date.now().toString(), role: "user", content: input }
+      setMessages((prev) => [...prev, newMessage])
+      setInput("")
+      setIsLoading(true)
+      setError(null)
+
+      try {
+        const response = await apiRequest<{ response: string }>(apiEndpoint, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ messages: [...messages, newMessage] }),
+        })
+
+        const aiResponse: Message = { id: Date.now().toString(), role: "assistant", content: response.response }
+        setMessages((prev) => [...prev, aiResponse])
+      } catch (err) {
+        setError(err as Error)
+        console.error("Chat API error:", err)
+      } finally {
+        setIsLoading(false)
+      }
     },
-    onSuccess: (response) => {
-      setCurrentConversationId(response.conversationId);
-      // Invalidate and refetch messages
-      queryClient.invalidateQueries({
-        queryKey: ["/api/conversations", response.conversationId, "messages"],
-      });
-      // Also invalidate conversations list
-      queryClient.invalidateQueries({
-        queryKey: ["/api/conversations"],
-      });
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "خطأ في الإرسال",
-        description: error.message || "فشل في إرسال الرسالة",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const sendMessage = async (message: string, attachments?: any[]) => {
-    if (!message.trim()) return;
-
-    const chatRequest: ChatRequest = {
-      message: message.trim(),
-      conversationId: currentConversationId,
-      model: selectedModel,
-      attachments,
-    };
-
-    await sendMessageMutation.mutateAsync(chatRequest);
-  };
-
-  // Update conversation ID when prop changes
-  useEffect(() => {
-    setCurrentConversationId(conversationId);
-  }, [conversationId]);
+    [input, messages, apiEndpoint],
+  )
 
   return {
     messages,
-    isLoading: messagesLoading || sendMessageMutation.isPending,
-    sendMessage,
-    currentConversationId,
-    error: sendMessageMutation.error,
-  };
+    setMessages,
+    input,
+    handleInputChange,
+    handleSubmit,
+    isLoading,
+    error,
+  }
 }
