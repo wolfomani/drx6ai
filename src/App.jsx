@@ -5,7 +5,6 @@ import { Search } from "lucide-react"
 import ModelSelector from "./components/ModelSelector"
 import ChatInput from "./components/ChatInput"
 import { ChatMessages } from "./components/ChatMessages"
-import SuggestionChips from "./components/SuggestionChips"
 import { useMessages } from "./hooks/use-messages"
 import { chatModels } from "./lib/models"
 import "./App.css"
@@ -28,7 +27,7 @@ function App() {
       case "expert":
         return "👨‍💻 [وضع الخبير المطلق]"
       case "planets":
-        return "🔭 [بحث الكواكب]"
+        return "🌐 [بحث]"
       default:
         return ""
     }
@@ -37,7 +36,6 @@ function App() {
   const handleSendMessage = async (message, mode = "default") => {
     if (!message.trim() || isLoading) return
 
-    // أضف معلومات الوضع للرسالة
     let displayMessage = message
     const modeText = getModeDisplayText(mode)
     if (modeText) {
@@ -118,20 +116,32 @@ function App() {
       setMessages((prev) => [...prev, assistantMessage])
     } catch (error) {
       if (error.name === "AbortError") {
-        console.log("Request was aborted")
+        console.log("تم إلغاء الطلب")
         return
       }
 
-      console.error("Error sending message:", error)
+      console.error("خطأ في إرسال الرسالة:", error)
 
-      const errorMessage = {
+      let errorMessage = "حدث خطأ غير متوقع"
+
+      if (error.message.includes("timeout") || error.message.includes("408")) {
+        errorMessage = "انتهت مهلة الاستجابة ⏰\nيرجى المحاولة مرة أخرى بسؤال أقصر أو تبسيط الطلب."
+      } else if (error.message.includes("500")) {
+        errorMessage = "خطأ في الخادم 🔧\nيرجى المحاولة مرة أخرى بعد قليل."
+      } else if (error.message.includes("API")) {
+        errorMessage = "مشكلة في الاتصال بالذكاء الاصطناعي 🤖\nيرجى تجربة نموذج آخر."
+      } else {
+        errorMessage = `حدث خطأ: ${error.message}`
+      }
+
+      const errorMessageObj = {
         id: (Date.now() + 1).toString(),
         role: "assistant",
-        content: `حدث خطأ: ${error.message}`,
+        content: errorMessage,
         timestamp: new Date().toISOString(),
       }
 
-      setMessages((prev) => [...prev, errorMessage])
+      setMessages((prev) => [...prev, errorMessageObj])
     } finally {
       setIsLoading(false)
       abortControllerRef.current = null
@@ -178,9 +188,8 @@ function App() {
               <img src="/drx-logo.png" alt="Dr.X" className="main-logo-img" />
             </div>
 
-            <ModelSelector selectedModel={selectedModel} onModelChange={handleModelChange} models={chatModels} />
-
-            <SuggestionChips onSuggestionClick={handleSuggestionClick} />
+            <h1 className="welcome-title animate-fade-in">مرحباً. أنا dr.x.</h1>
+            <p className="welcome-subtitle animate-fade-in">كيف يمكنني مساعدتك اليوم؟</p>
           </>
         )}
 
@@ -196,10 +205,10 @@ function App() {
           </>
         )}
 
-        <ChatInput onSendMessage={handleSendMessage} isLoading={isLoading} />
+        <ChatInput onSendMessage={handleSendMessage} isLoading={isLoading} isInitialScreen={!hasMessages} />
 
         <p className="footer-text">
-          بإرسالك رسالة إلى Dr.X، فإنك توافق على{" "}
+          بإرسالك رسالة إلى dr.x، فإنك توافق على{" "}
           <a href="https://x.ai/legal/terms-of-service" target="_blank" rel="noopener noreferrer">
             الشروط
           </a>{" "}

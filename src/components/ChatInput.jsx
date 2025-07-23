@@ -1,16 +1,11 @@
 "use client"
 
 import { useState, useRef, useEffect } from "react"
-import { Send, Paperclip, Mic, ImageIcon, FileText } from "lucide-react"
+import { Send } from "lucide-react"
 
-const ChatInput = ({ onSendMessage, isLoading }) => {
+const ChatInput = ({ onSendMessage, isLoading, isInitialScreen }) => {
   const [message, setMessage] = useState("")
-  const [isFocused, setIsFocused] = useState(false)
-  const [showAttachments, setShowAttachments] = useState(false)
-  const [isRecording, setIsRecording] = useState(false)
   const textareaRef = useRef(null)
-
-  const placeholderSuggestions = ["اسأل عن أي شيء...", "كيف يمكنني مساعدتك؟", "ما الذي تريد معرفته؟"]
 
   useEffect(() => {
     if (textareaRef.current) {
@@ -47,129 +42,32 @@ const ChatInput = ({ onSendMessage, isLoading }) => {
     }
   }
 
-  const handleAttachmentClick = (type) => {
-    console.log("Attachment type:", type)
-    setShowAttachments(false)
-  }
-
-  const toggleRecording = () => {
-    setIsRecording(!isRecording)
-    // هنا يمكن إضافة منطق التسجيل الصوتي
-  }
-
   const isMessageValid = message.trim().length > 0
 
   return (
     <div className="chat-input-container">
       <form onSubmit={handleSubmit} className="chat-form">
-        <div className={`input-wrapper ${isFocused ? "focused" : ""} ${isLoading ? "loading" : ""}`}>
+        <div className={`input-wrapper ${isLoading ? "loading" : ""}`}>
           {isLoading && <div className="loading-bar"></div>}
+
+          {isInitialScreen && (
+            <div className="input-label-container">
+              <span className="input-label-text">أرسل رسالة إلى dr.x</span>
+            </div>
+          )}
 
           <textarea
             ref={textareaRef}
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             onKeyDown={handleKeyDown}
-            onFocus={() => setIsFocused(true)}
-            onBlur={() => setIsFocused(false)}
             placeholder=""
             className="message-input"
             disabled={isLoading}
             rows={1}
           />
 
-          {!message && !isFocused && (
-            <div className="input-placeholder">
-              <span className="placeholder-text">اسأل Dr.X عن أي شيء...</span>
-              <div className="placeholder-suggestions">
-                {placeholderSuggestions.map((suggestion, index) => (
-                  <span key={index} className="suggestion-bubble">
-                    {suggestion}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
-
           <div className="input-controls">
-            <div className="controls-left">
-              <div className="mode-buttons">
-                <button
-                  type="button"
-                  className="mode-button reasoning-mode"
-                  onClick={() => handleModeClick("reasoning")}
-                  disabled={!isMessageValid || isLoading}
-                  title="تفكير عميق مع DeepSeek R1"
-                >
-                  🧠 R1
-                </button>
-                <button
-                  type="button"
-                  className="mode-button expert-mode"
-                  onClick={() => handleModeClick("expert")}
-                  disabled={!isMessageValid || isLoading}
-                  title="وضع الخبير المطلق - حلول متقدمة"
-                >
-                  👨‍💻 خبير
-                </button>
-                <button
-                  type="button"
-                  className="mode-button planets-mode"
-                  onClick={() => handleModeClick("planets")}
-                  disabled={!isMessageValid || isLoading}
-                  title="بحث متقدم في الكواكب"
-                >
-                  🔭 كواكب
-                </button>
-              </div>
-
-              <div className="attachment-container">
-                <button
-                  type="button"
-                  className={`control-button attachment-button ${showAttachments ? "active" : ""}`}
-                  onClick={() => setShowAttachments(!showAttachments)}
-                  disabled={isLoading}
-                  aria-label="إرفاق ملف"
-                >
-                  <Paperclip size={18} />
-                </button>
-
-                {showAttachments && (
-                  <div className="attachment-dropdown">
-                    <button
-                      type="button"
-                      className="attachment-option"
-                      onClick={() => handleAttachmentClick("image")}
-                      style={{ animationDelay: "0s" }}
-                    >
-                      <ImageIcon size={16} />
-                      صورة
-                    </button>
-                    <button
-                      type="button"
-                      className="attachment-option"
-                      onClick={() => handleAttachmentClick("file")}
-                      style={{ animationDelay: "0.1s" }}
-                    >
-                      <FileText size={16} />
-                      ملف
-                    </button>
-                  </div>
-                )}
-              </div>
-
-              <button
-                type="button"
-                className={`control-button mic-button ${isRecording ? "recording" : ""}`}
-                onClick={toggleRecording}
-                disabled={isLoading}
-                aria-label={isRecording ? "إيقاف التسجيل" : "بدء التسجيل"}
-              >
-                <Mic size={18} />
-                {isRecording && <div className="recording-pulse"></div>}
-              </button>
-            </div>
-
             <button
               type="submit"
               className={`send-button ${isMessageValid ? "active" : ""} ${isLoading ? "loading" : ""}`}
@@ -178,6 +76,27 @@ const ChatInput = ({ onSendMessage, isLoading }) => {
             >
               {isLoading ? <div className="loading-spinner"></div> : <Send size={18} />}
             </button>
+
+            <div className="mode-buttons">
+              <button
+                type="button"
+                className="mode-button reasoning-mode"
+                onClick={() => handleModeClick("reasoning")}
+                disabled={!isMessageValid || isLoading}
+                title="تفكير عميق مع DeepSeek R1"
+              >
+                🧠 تفكير عميق (R1)
+              </button>
+              <button
+                type="button"
+                className="mode-button search-mode"
+                onClick={() => handleModeClick("planets")}
+                disabled={!isMessageValid || isLoading}
+                title="بحث متقدم"
+              >
+                🌐 بحث
+              </button>
+            </div>
           </div>
         </div>
       </form>
