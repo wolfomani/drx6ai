@@ -1,0 +1,222 @@
+import { GoogleGenAI } from "@google/genai";
+
+// AI Provider interfaces
+export interface AIProvider {
+  generateResponse(prompt: string, options?: any): Promise<string>;
+  getName(): string;
+  isAvailable(): boolean;
+}
+
+// Gemini Provider
+export class GeminiProvider implements AIProvider {
+  private ai: GoogleGenAI;
+
+  constructor() {
+    const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_AI_API_KEY || "";
+    this.ai = new GoogleGenAI({ apiKey });
+  }
+
+  async generateResponse(prompt: string, options: any = {}): Promise<string> {
+    try {
+      const response = await this.ai.models.generateContent({
+        model: "gemini-2.5-flash",
+        contents: prompt,
+        config: options.config || {},
+      });
+
+      return response.text || "عذراً، لم أتمكن من إنتاج إجابة.";
+    } catch (error) {
+      console.error('Gemini API Error:', error);
+      throw new Error(`Gemini API error: ${error}`);
+    }
+  }
+
+  getName(): string {
+    return "Gemini";
+  }
+
+  isAvailable(): boolean {
+    return !!(process.env.GEMINI_API_KEY || process.env.GOOGLE_AI_API_KEY);
+  }
+}
+
+// DeepSeek Provider with reasoning capabilities
+export class DeepSeekProvider implements AIProvider {
+  async generateResponse(prompt: string, options: any = {}): Promise<string> {
+    const apiKey = process.env.DEEPSEEK_API_KEY;
+    if (!apiKey) {
+      throw new Error("DeepSeek API key not configured");
+    }
+
+    try {
+      const response = await fetch("https://api.deepseek.com/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model: "deepseek-reasoner",
+          messages: [
+            {
+              role: "system", 
+              content: "You are a helpful AI assistant. Think step by step and show your reasoning process when needed."
+            },
+            {
+              role: "user",
+              content: prompt
+            }
+          ],
+          stream: false,
+          temperature: 0.7,
+          max_tokens: 2048,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`DeepSeek API error: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data.choices?.[0]?.message?.content || "عذراً، لم أتمكن من إنتاج إجابة.";
+    } catch (error) {
+      console.error('DeepSeek API Error:', error);
+      throw new Error(`DeepSeek API error: ${error}`);
+    }
+  }
+
+  getName(): string {
+    return "DeepSeek";
+  }
+
+  isAvailable(): boolean {
+    return !!process.env.DEEPSEEK_API_KEY;
+  }
+}
+
+export class GroqProvider implements AIProvider {
+  async generateResponse(prompt: string, options: any = {}): Promise<string> {
+    const apiKey = process.env.GROQ_API_KEY;
+    if (!apiKey) {
+      throw new Error("Groq API key not configured");
+    }
+
+    try {
+      const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model: "qwen-qwq-32b",
+          messages: [
+            {
+              role: "system",
+              content: "You are a helpful AI assistant. Provide fast and accurate responses."
+            },
+            {
+              role: "user",
+              content: prompt
+            }
+          ],
+          temperature: 0.7,
+          max_tokens: 2048,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Groq API error: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data.choices?.[0]?.message?.content || "عذراً، لم أتمكن من إنتاج إجابة.";
+    } catch (error) {
+      console.error('Groq API Error:', error);
+      throw new Error(`Groq API error: ${error}`);
+    }
+  }
+
+  getName(): string {
+    return "Groq";
+  }
+
+  isAvailable(): boolean {
+    return !!process.env.GROQ_API_KEY;
+  }
+}
+
+export class TogetherProvider implements AIProvider {
+  async generateResponse(prompt: string, options: any = {}): Promise<string> {
+    const apiKey = process.env.TOGETHER_API_KEY;
+    if (!apiKey) {
+      throw new Error("Together API key not configured");
+    }
+
+    try {
+      const response = await fetch("https://api.together.xyz/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model: "deepseek-ai/DeepSeek-V3",
+          messages: [
+            {
+              role: "system",
+              content: "You are a helpful AI assistant powered by open-source models. Provide thoughtful and detailed responses."
+            },
+            {
+              role: "user",
+              content: prompt
+            }
+          ],
+          temperature: 0.7,
+          max_tokens: 2048,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Together API error: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data.choices?.[0]?.message?.content || "عذراً، لم أتمكن من إنتاج إجابة.";
+    } catch (error) {
+      console.error('Together API Error:', error);
+      throw new Error(`Together API error: ${error}`);
+    }
+  }
+
+  getName(): string {
+    return "Together";
+  }
+
+  isAvailable(): boolean {
+    return !!process.env.TOGETHER_API_KEY;
+  }
+}
+
+// Provider factory
+export class AIProviderFactory {
+  private static providers: Map<string, AIProvider> = new Map([
+    ['gemini', new GeminiProvider()],
+    ['deepseek', new DeepSeekProvider()],
+    ['groq', new GroqProvider()],
+    ['together', new TogetherProvider()],
+  ]);
+
+  static getProvider(modelId: string): AIProvider | undefined {
+    return this.providers.get(modelId);
+  }
+
+  static getAllProviders(): Map<string, AIProvider> {
+    return this.providers;
+  }
+
+  static isProviderAvailable(modelId: string): boolean {
+    const provider = this.getProvider(modelId);
+    return provider ? provider.isAvailable() : false;
+  }
+}
