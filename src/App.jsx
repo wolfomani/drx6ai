@@ -1,105 +1,215 @@
 "use client"
 
-import { useState } from "react"
-import { ModelSelector } from "./components/ModelSelector"
-import { ChatInput } from "./components/ChatInput"
-import { SuggestionChips } from "./components/SuggestionChips"
+import { useState, useRef, useEffect } from "react"
+import { Search } from "lucide-react"
+import ModelSelector from "./components/ModelSelector"
+import ChatInput from "./components/ChatInput"
+import { ChatMessages } from "./components/ChatMessages"
+import SuggestionChips from "./components/SuggestionChips"
+import { useMessages } from "./hooks/use-messages"
+import { chatModels } from "./lib/models"
 import "./App.css"
 
 function App() {
-  const [selectedModel, setSelectedModel] = useState("deepseek")
   const [messages, setMessages] = useState([])
+  const [selectedModel, setSelectedModel] = useState("together")
   const [isLoading, setIsLoading] = useState(false)
+  const abortControllerRef = useRef(null)
 
-  const handleSendMessage = async (message) => {
+  const { containerRef, scrollToBottom } = useMessages({
+    chatId: "main-chat",
+    status: isLoading ? "streaming" : "idle",
+  })
+
+  const getModeDisplayText = (mode) => {
+    switch (mode) {
+      case "reasoning":
+        return "🧠 [تفكير عميق R1]"
+      case "expert":
+        return "👨‍💻 [وضع الخبير المطلق]"
+      case "planets":
+        return "🔭 [بحث الكواكب]"
+      default:
+        return ""
+    }
+  }
+
+  const handleSendMessage = async (message, mode = "default") => {
+    if (!message.trim() || isLoading) return
+
+    // أضف معلومات الوضع للرسالة
+    let displayMessage = message
+    const modeText = getModeDisplayText(mode)
+    if (modeText) {
+      displayMessage = `${modeText} ${message}`
+    }
+
+    const userMessage = {
+      id: Date.now().toString(),
+      role: "user",
+      content: displayMessage,
+      timestamp: new Date().toISOString(),
+    }
+
+    setMessages((prev) => [...prev, userMessage])
     setIsLoading(true)
-    // Add user message
-    const newMessages = [...messages, { role: "user", content: message }]
-    setMessages(newMessages)
 
-    // Simulate AI response (replace with actual API call)
-    setTimeout(() => {
-      setMessages([
-        ...newMessages,
-        {
-          role: "assistant",
-          content: "مرحباً! أنا Dr.X، مساعدك الذكي. كيف يمكنني مساعدتك اليوم؟",
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort()
+    }
+
+    abortControllerRef.current = new AbortController()
+
+    try {
+      console.log("إرسال رسالة إلى:", selectedModel)
+      console.log("محتوى الرسالة:", message)
+      console.log("الوضع:", mode)
+
+      const requestBody = {
+        message: message,
+        model: selectedModel,
+        mode: mode,
+      }
+
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
         },
-      ])
+        body: JSON.stringify(requestBody),
+        signal: abortControllerRef.current.signal,
+      })
+
+      console.log("حالة الاستجابة:", response.status)
+
+      const responseText = await response.text()
+      console.log("Raw response:", responseText)
+
+      if (!response.ok) {
+        let errorData
+        try {
+          errorData = JSON.parse(responseText)
+        } catch (e) {
+          errorData = { error: responseText }
+        }
+        console.error("خطأ من الخادم:", errorData)
+        throw new Error(errorData.error || `HTTP error! status: ${response.status}`)
+      }
+
+      let data
+      try {
+        data = JSON.parse(responseText)
+      } catch (parseError) {
+        console.error("Failed to parse response JSON:", parseError)
+        throw new Error("Invalid JSON response from server")
+      }
+
+      console.log("تم استلام الرد:", data)
+
+      const assistantMessage = {
+        id: (Date.now() + 1).toString(),
+        role: "assistant",
+        content: data.response,
+        reasoning_content: data.reasoning || null,
+        timestamp: new Date().toISOString(),
+        mode: data.mode || mode,
+      }
+
+      setMessages((prev) => [...prev, assistantMessage])
+    } catch (error) {
+      if (error.name === "AbortError") {
+        console.log("Request was aborted")
+        return
+      }
+
+      console.error("Error sending message:", error)
+
+      const errorMessage = {
+        id: (Date.now() + 1).toString(),
+        role: "assistant",
+        content: `حدث خطأ: ${error.message}`,
+        timestamp: new Date().toISOString(),
+      }
+
+      setMessages((prev) => [...prev, errorMessage])
+    } finally {
       setIsLoading(false)
-    }, 1000)
+      abortControllerRef.current = null
+    }
   }
 
   const handleSuggestionClick = (suggestion) => {
     handleSendMessage(suggestion)
   }
 
+  const handleModelChange = (modelId) => {
+    setSelectedModel(modelId)
+    console.log("تم تغيير النموذج إلى:", modelId)
+  }
+
+  useEffect(() => {
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort()
+      }
+    }
+  }, [])
+
+  const hasMessages = messages.length > 0
+
   return (
-    <div
-      className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800"
-      dir="rtl"
-    >
-      <div className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <div className="flex items-center justify-center mb-4">
-            <img src="/drx-logo.png" alt="Dr.X Logo" className="h-16 w-auto" />
-          </div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Dr.X AI Assistant</h1>
-          <p className="text-gray-600 dark:text-gray-300">مساعدك الذكي المتقدم</p>
+    <div className="app-container">
+      <nav className="top-nav">
+        <div className="nav-logo">
+          <img src="/drx-logo.png" alt="Dr.X" className="logo-img" />
         </div>
-
-        {/* Model Selector */}
-        <div className="mb-6">
-          <ModelSelector selectedModel={selectedModel} onModelChange={setSelectedModel} />
+        <div className="nav-actions">
+          <button className="nav-button" aria-label="السجل">
+            <Search size={20} />
+          </button>
+          <button className="login-button">تسجيل الدخول</button>
         </div>
+      </nav>
 
-        {/* Chat Messages */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg mb-6 min-h-[400px] p-6">
-          {messages.length === 0 ? (
-            <div className="text-center text-gray-500 dark:text-gray-400 mt-20">
-              <p className="text-lg mb-4">ابدأ محادثة جديدة</p>
-              <SuggestionChips onSuggestionClick={handleSuggestionClick} />
+      <main className={`main-container ${hasMessages ? "with-messages" : ""}`}>
+        {!hasMessages && (
+          <>
+            <div className="main-logo animate-fade-in">
+              <img src="/drx-logo.png" alt="Dr.X" className="main-logo-img" />
             </div>
-          ) : (
-            <div className="space-y-4">
-              {messages.map((message, index) => (
-                <div key={index} className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}>
-                  <div
-                    className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
-                      message.role === "user"
-                        ? "bg-blue-500 text-white"
-                        : "bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white"
-                    }`}
-                  >
-                    {message.content}
-                  </div>
-                </div>
-              ))}
-              {isLoading && (
-                <div className="flex justify-start">
-                  <div className="bg-gray-200 dark:bg-gray-700 rounded-lg px-4 py-2">
-                    <div className="flex space-x-1">
-                      <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce"></div>
-                      <div
-                        className="w-2 h-2 bg-gray-500 rounded-full animate-bounce"
-                        style={{ animationDelay: "0.1s" }}
-                      ></div>
-                      <div
-                        className="w-2 h-2 bg-gray-500 rounded-full animate-bounce"
-                        style={{ animationDelay: "0.2s" }}
-                      ></div>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
 
-        {/* Chat Input */}
-        <ChatInput onSendMessage={handleSendMessage} disabled={isLoading} />
-      </div>
+            <ModelSelector selectedModel={selectedModel} onModelChange={handleModelChange} models={chatModels} />
+
+            <SuggestionChips onSuggestionClick={handleSuggestionClick} />
+          </>
+        )}
+
+        {hasMessages && (
+          <>
+            <div style={{ alignSelf: "flex-start", marginBottom: "1rem" }}>
+              <ModelSelector selectedModel={selectedModel} onModelChange={handleModelChange} models={chatModels} />
+            </div>
+
+            <div ref={containerRef} className="messages-container flex-1 overflow-y-auto">
+              <ChatMessages messages={messages} isLoading={isLoading} />
+            </div>
+          </>
+        )}
+
+        <ChatInput onSendMessage={handleSendMessage} isLoading={isLoading} />
+
+        <p className="footer-text">
+          بإرسالك رسالة إلى Dr.X، فإنك توافق على{" "}
+          <a href="https://x.ai/legal/terms-of-service" target="_blank" rel="noopener noreferrer">
+            الشروط
+          </a>{" "}
+          و{" "}
+          <a href="https://x.ai/legal/privacy-policy" target="_blank" rel="noopener noreferrer">
+            سياسة الخصوصية
+          </a>
+          .
+        </p>
+      </main>
     </div>
   )
 }

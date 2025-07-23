@@ -10,7 +10,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@eslint/js": "latest",
+    "@auth/core": "latest",
+    "@emotion/is-prop-valid": "latest",
     "@radix-ui/react-accordion": "latest",
     "@radix-ui/react-alert-dialog": "latest",
     "@radix-ui/react-aspect-ratio": "latest",
@@ -38,17 +39,22 @@
     "@radix-ui/react-toggle-group": "latest",
     "@radix-ui/react-tooltip": "latest",
     "@types/node": "latest",
+    "ai": "latest",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "latest",
+    "date-fns": "^2.30.0",
     "embla-carousel-react": "latest",
+    "framer-motion": "latest",
     "input-otp": "latest",
     "jiti": "latest",
     "less": "latest",
     "lightningcss": "latest",
     "lucide-react": "^0.454.0",
     "next": "15.2.4",
+    "next-auth": "latest",
     "next-themes": "latest",
+    "nodemailer": "latest",
     "path": "latest",
     "react": "^19",
     "react-day-picker": "latest",
@@ -66,21 +72,23 @@
     "terser": "latest",
     "tsx": "latest",
     "vaul": "latest",
-    "yaml": "latest"
+    "yaml": "latest",
+    "zod": "latest"
   },
   "devDependencies": {
+    "@eslint/js": "^9.9.1",
     "@types/node": "^22",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@vitejs/plugin-react": "^4.3.1",
-    "autoprefixer": "^10.4.19",
-    "eslint": "^9.9.0",
+    "autoprefixer": "^10.4.20",
+    "eslint": "^9.9.1",
     "eslint-plugin-react-hooks": "^5.1.0-rc.0",
-    "eslint-plugin-react-refresh": "^0.4.9",
+    "eslint-plugin-react-refresh": "^0.4.11",
     "globals": "^15.9.0",
     "postcss": "^8.5",
     "tailwindcss": "^3.4.10",
     "typescript": "^5",
-    "vite": "^5.4.1"
+    "vite": "^5.4.2"
   }
 }

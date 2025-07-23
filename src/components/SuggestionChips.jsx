@@ -1,14 +1,13 @@
 "use client"
 
 import { useState } from "react"
-import { Button } from "./ui/button"
 import { ImageIcon, FileText, Clock, Code, Lightbulb, Calculator, Globe, Music } from "lucide-react"
 
-export function SuggestionChips({ onSuggestionClick, disabled }) {
+const SuggestionChips = ({ onSuggestionClick }) => {
   const [hoveredChip, setHoveredChip] = useState(null)
 
   // الاقتراحات مع الأيقونات والألوان
-  const suggestionsWithIcons = [
+  const suggestions = [
     {
       icon: ImageIcon,
       text: "تعديل الصورة",
@@ -67,19 +66,8 @@ export function SuggestionChips({ onSuggestionClick, disabled }) {
     },
   ]
 
-  const simpleSuggestions = [
-    "ما هي أحدث التطورات في الذكاء الاصطناعي؟",
-    "اشرح لي مفهوم التعلم الآلي",
-    "كيف يمكنني تحسين مهاراتي في البرمجة؟",
-    "ما هي أفضل الممارسات في تطوير الويب؟",
-  ]
-
   const handleChipClick = (suggestion) => {
-    if (typeof suggestion === "object") {
-      onSuggestionClick(suggestion.prompt)
-    } else {
-      onSuggestionClick(suggestion)
-    }
+    onSuggestionClick(suggestion.prompt)
   }
 
   return (
@@ -90,7 +78,7 @@ export function SuggestionChips({ onSuggestionClick, disabled }) {
       </div>
 
       <div className="suggestion-chips">
-        {suggestionsWithIcons.map((suggestion, index) => (
+        {suggestions.map((suggestion, index) => (
           <button
             key={index}
             className={`suggestion-chip ${hoveredChip === index ? "hovered" : ""}`}
@@ -101,7 +89,6 @@ export function SuggestionChips({ onSuggestionClick, disabled }) {
               "--chip-color": suggestion.color,
               "--animation-delay": `${index * 0.1}s`,
             }}
-            disabled={disabled}
           >
             <div className="chip-background"></div>
             <div className="chip-content">
@@ -118,25 +105,10 @@ export function SuggestionChips({ onSuggestionClick, disabled }) {
         ))}
       </div>
 
-      <div className="flex flex-wrap gap-2 justify-center">
-        {simpleSuggestions.map((suggestion, index) => (
-          <Button
-            key={index}
-            variant="outline"
-            size="sm"
-            onClick={() => handleChipClick(suggestion)}
-            disabled={disabled}
-            className="text-xs"
-          >
-            {suggestion}
-          </Button>
-        ))}
-      </div>
-
       {/* مؤشر التمرير للجوال */}
       <div className="scroll-indicator">
         <div className="scroll-dots">
-          {Array.from({ length: Math.ceil(suggestionsWithIcons.length / 2) }).map((_, index) => (
+          {Array.from({ length: Math.ceil(suggestions.length / 2) }).map((_, index) => (
             <div key={index} className="scroll-dot"></div>
           ))}
         </div>
@@ -144,3 +116,5 @@ export function SuggestionChips({ onSuggestionClick, disabled }) {
     </div>
   )
 }
+
+export default SuggestionChips
