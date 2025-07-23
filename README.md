@@ -29,7 +29,7 @@
 ## البنية التقنية
 
 ### المكونات الرئيسية
-```
+\`\`\`
 src/
 ├── App.jsx                    # المكون الرئيسي
 ├── App.css                    # الأنماط الرئيسية
@@ -37,7 +37,7 @@ src/
     ├── ModelSelector.jsx      # منتقي النماذج
     ├── ChatInput.jsx         # منطقة الإدخال
     └── SuggestionChips.jsx   # شرائح الاقتراحات
-```
+\`\`\`
 
 ### التقنيات المستخدمة
 - **React 18**: مع Hooks حديثة
@@ -53,7 +53,7 @@ src/
 - pnpm أو npm
 
 ### خطوات التشغيل
-```bash
+\`\`\`bash
 # تثبيت المكتبات
 pnpm install
 
@@ -62,7 +62,7 @@ pnpm run dev
 
 # بناء المشروع للإنتاج
 pnpm run build
-```
+\`\`\`
 
 ## الرسوم المتحركة والتأثيرات
 
@@ -83,7 +83,7 @@ pnpm run build
 ## التخصيص والتطوير
 
 ### متغيرات CSS
-```css
+\`\`\`css
 :root {
   --bg-base: #1e1f22;
   --surface-l2: #2a2b2e;
@@ -91,20 +91,20 @@ pnpm run build
   --accent: #58a6ff;
   --transition: all 0.25s ease;
 }
-```
+\`\`\`
 
 ### إضافة نماذج جديدة
-```javascript
+\`\`\`javascript
 const newModel = {
   id: 'new-model',
   name: 'New Model',
   description: 'وصف النموذج الجديد',
   features: ['ميزة 1', 'ميزة 2']
 };
-```
+\`\`\`
 
 ### إضافة اقتراحات جديدة
-```javascript
+\`\`\`javascript
 const newSuggestion = {
   icon: NewIcon,
   text: 'اقتراح جديد',
@@ -112,7 +112,7 @@ const newSuggestion = {
   color: '#ff6b6b',
   category: 'فئة جديدة'
 };
-```
+\`\`\`
 
 ## الأداء والتحسين
 
@@ -155,4 +155,3 @@ const newSuggestion = {
 ---
 
 تم تطوير هذا المشروع بعناية فائقة لضمان تجربة مستخدم استثنائية مع أحدث تقنيات الويب.
-

@@ -1,103 +1,73 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { ChevronDown, Cpu, Zap, Users, Sparkles } from 'lucide-react';
+"use client"
 
-const ModelSelector = ({ selectedModel, onModelChange, models }) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [hoveredModel, setHoveredModel] = useState(null);
-  const dropdownRef = useRef(null);
+import { useState } from "react"
+import { Button } from "./ui/button"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog"
+import { Separator } from "./ui/separator"
+import { Settings, ChevronDown } from "lucide-react"
 
-  // أيقونات النماذج
-  const modelIcons = {
-    deepseek: Cpu,
-    groq: Zap,
-    together: Users,
-    gemini: Sparkles
-  };
+const ModelSelector = ({ selectedModel, onModelChange, onSettingsOpen }) => {
+  const [isOpen, setIsOpen] = useState(false)
 
-  // إغلاق القائمة عند النقر خارجها
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setIsOpen(false);
-      }
-    };
+  const models = [
+    { id: "deepseek", name: "DeepSeek", provider: "DeepSeek" },
+    { id: "groq", name: "Groq Qwen", provider: "Groq" },
+    { id: "together", name: "DeepSeek V3", provider: "Together" },
+    { id: "gemini", name: "Gemini", provider: "Google" },
+  ]
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  const selectedModelData = models.find(m => m.id === selectedModel);
-  const SelectedIcon = modelIcons[selectedModel] || Cpu;
+  const currentModel = models.find((m) => m.id === selectedModel) || models[0]
 
   return (
-    <div className="model-selector-container" ref={dropdownRef}>
-      <button 
-        className={`model-selector ${isOpen ? 'active' : ''}`}
-        onClick={() => setIsOpen(!isOpen)}
-        aria-expanded={isOpen}
-        aria-haspopup="listbox"
-      >
-        <div className="model-selector-content">
-          <SelectedIcon size={18} className="model-icon" />
-          <div className="model-text">
-            <span className="model-label">النموذج:</span>
-            <span className="model-name">{selectedModelData?.name}</span>
+    <>
+      <div className="flex items-center gap-2">
+        <Button
+          variant="outline"
+          onClick={() => setIsOpen(true)}
+          className="flex items-center gap-2 min-w-[140px] justify-between"
+        >
+          <div className="flex flex-col items-start">
+            <span className="text-sm font-medium">{currentModel.name}</span>
+            <span className="text-xs text-muted-foreground">{currentModel.provider}</span>
           </div>
-        </div>
-        <ChevronDown 
-          size={16} 
-          className={`chevron-icon ${isOpen ? 'rotate' : ''}`} 
-        />
-      </button>
-      
-      {isOpen && (
-        <div className="model-dropdown">
-          <div className="dropdown-header">
-            <span>اختر النموذج المناسب</span>
-          </div>
-          {models.map((model, index) => {
-            const ModelIcon = modelIcons[model.id] || Cpu;
-            return (
-              <button
-                key={model.id}
-                className={`model-option ${selectedModel === model.id ? 'selected' : ''} ${hoveredModel === model.id ? 'hovered' : ''}`}
-                onClick={() => {
-                  onModelChange(model.id);
-                  setIsOpen(false);
-                }}
-                onMouseEnter={() => setHoveredModel(model.id)}
-                onMouseLeave={() => setHoveredModel(null)}
-                style={{ animationDelay: `${index * 0.05}s` }}
-                role="option"
-                aria-selected={selectedModel === model.id}
-              >
-                <div className="model-option-content">
-                  <div className="model-option-header">
-                    <ModelIcon size={20} className="model-option-icon" />
-                    <span className="model-option-name">{model.name}</span>
-                    {selectedModel === model.id && (
-                      <div className="selected-indicator">
-                        <div className="selected-dot"></div>
-                      </div>
-                    )}
+          <ChevronDown className="h-4 w-4" />
+        </Button>
+
+        <Button variant="outline" size="icon" onClick={onSettingsOpen} className="h-10 w-10 bg-transparent">
+          <Settings className="h-4 w-4" />
+        </Button>
+      </div>
+
+      <Dialog open={isOpen} onOpenChange={setIsOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Select AI Model</DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            {models.map((model) => (
+              <div key={model.id}>
+                <Button
+                  variant={selectedModel === model.id ? "default" : "ghost"}
+                  className="w-full justify-start h-auto p-4"
+                  onClick={() => {
+                    onModelChange(model.id)
+                    setIsOpen(false)
+                  }}
+                >
+                  <div className="flex flex-col items-start">
+                    <span className="font-medium">{model.name}</span>
+                    <span className="text-sm text-muted-foreground">{model.provider}</span>
                   </div>
-                  <p className="model-option-description">{model.description}</p>
-                  {model.features && (
-                    <div className="model-features">
-                      {model.features.map((feature, idx) => (
-                        <span key={idx} className="feature-tag">{feature}</span>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </button>
-            );
-          })}
-        </div>
-      )}
-    </div>
-  );
-};
+                </Button>
+                {model.id !== models[models.length - 1].id && <Separator className="mt-2" />}
+              </div>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
+  )
+}
 
-export default ModelSelector;
-
+export default ModelSelector
