@@ -201,11 +201,11 @@ export class TogetherProvider implements AIProvider {
           "Authorization": `Bearer ${apiKey}`,
         },
         body: JSON.stringify({
-          model: "meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo",
+          model: "deepseek-ai/DeepSeek-R1-Distill-Llama-70B-free",
           messages: [
             {
               role: "system",
-              content: "أنت مساعد ذكي مدعوم بنماذج مفتوحة المصدر. قدم إجابات مدروسة ومفصلة باللغة العربية."
+              content: "أنت مساعد ذكي مدعوم بنموذج DeepSeek-R1 المتقدم. استخدم تقنيات التفكير والتحليل لتقديم إجابات دقيقة باللغة العربية."
             },
             {
               role: "user",

@@ -64,10 +64,10 @@ export class MemStorage implements IStorage {
       {
         id: 'together',
         name: 'Together',
-        description: 'مفتوح المصدر متقدم',
+        description: 'DeepSeek-R1 مجاني',
         provider: 'together',
-        available: false,
-        features: ['text', 'open-source'],
+        available: true,
+        features: ['text', 'reasoning', 'free'],
         icon: 'TG',
         color: 'purple'
       },

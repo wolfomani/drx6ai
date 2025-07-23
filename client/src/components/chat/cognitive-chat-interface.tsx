@@ -47,7 +47,7 @@ export default function CognitiveChatInterface() {
 
   // Simulate reasoning steps and thinking stages for demonstration
   useEffect(() => {
-    if (isLoading && (selectedModel === 'deepseek' || selectedModel === 'gemini')) {
+    if (isLoading && (selectedModel === 'deepseek' || selectedModel === 'gemini' || selectedModel === 'together')) {
       setIsThinking(true);
       setReasoningSteps([]);
       setThinkingStage('analyzing');
@@ -60,11 +60,17 @@ export default function CognitiveChatInterface() {
           { id: '2', type: 'analysis' as const, content: 'أبحث في قاعدة المعرفة والذاكرة طويلة المدى للعثور على المعلومات الأكثر دقة...', timestamp: new Date(), confidence: 0.92 },
           { id: '3', type: 'conclusion' as const, content: 'أصيغ الإجابة بطريقة واضحة ومنطقية مع التأكد من جودة المحتوى...', timestamp: new Date(), confidence: 0.98 }
         ];
-      } else {
+      } else if (selectedModel === 'gemini') {
         steps = [
           { id: '1', type: 'thinking' as const, content: 'أستخدم نموذج التفكير المتقدم لفهم طلبك بعمق...', timestamp: new Date(), confidence: 0.88 },
           { id: '2', type: 'analysis' as const, content: 'أدمج المعلومات من مصادر متعددة وأحللها بدقة...', timestamp: new Date(), confidence: 0.94 },
           { id: '3', type: 'conclusion' as const, content: 'أقدم إجابة شاملة ومفيدة باللغة العربية...', timestamp: new Date(), confidence: 0.96 }
+        ];
+      } else {
+        steps = [
+          { id: '1', type: 'thinking' as const, content: 'أطبق نموذج DeepSeek-R1 المجاني للتفكير والتحليل...', timestamp: new Date(), confidence: 0.87 },
+          { id: '2', type: 'analysis' as const, content: 'أستفيد من النماذج مفتوحة المصدر لمعالجة شاملة...', timestamp: new Date(), confidence: 0.91 },
+          { id: '3', type: 'conclusion' as const, content: 'أنتج إجابة عالية الجودة بتكلفة منخفضة...', timestamp: new Date(), confidence: 0.95 }
         ];
       }
 
@@ -176,20 +182,22 @@ export default function CognitiveChatInterface() {
         <SuggestionChips onSuggestionClick={handleSuggestionClick} />
 
         {/* AI Thinking Indicator */}
-        {isThinking && (selectedModel === 'deepseek' || selectedModel === 'gemini') && (
+        {isThinking && (selectedModel === 'deepseek' || selectedModel === 'gemini' || selectedModel === 'together') && (
           <div className="px-4 py-2">
             <AIThinkingIndicator
               stage={thinkingStage}
               message={selectedModel === 'deepseek' 
                 ? "نموذج التفكير المتقدم يحلل طلبك بعمق..." 
-                : "نموذج التفكير السريع ينتج إجابة مثلى..."}
+                : selectedModel === 'gemini'
+                ? "نموذج التفكير السريع ينتج إجابة مثلى..."
+                : "DeepSeek-R1 المجاني يفكر ويحلل طلبك..."}
               progress={Math.min((reasoningSteps.length / 3) * 100, 100)}
             />
           </div>
         )}
 
         {/* Reasoning Display */}
-        {(reasoningSteps.length > 0 || isThinking) && (selectedModel === 'deepseek' || selectedModel === 'gemini') && (
+        {(reasoningSteps.length > 0 || isThinking) && (selectedModel === 'deepseek' || selectedModel === 'gemini' || selectedModel === 'together') && (
           <div className="px-4">
             <ReasoningDisplay 
               steps={reasoningSteps} 
