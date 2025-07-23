@@ -4,7 +4,7 @@ import { useState } from "react"
 import { Button } from "./ui/button"
 import { ImageIcon, FileText, Clock, Code, Lightbulb, Calculator, Globe, Music } from "lucide-react"
 
-const SuggestionChips = ({ onSuggestionClick, disabled }) => {
+export function SuggestionChips({ onSuggestionClick, disabled }) {
   const [hoveredChip, setHoveredChip] = useState(null)
 
   // الاقتراحات مع الأيقونات والألوان
@@ -67,7 +67,12 @@ const SuggestionChips = ({ onSuggestionClick, disabled }) => {
     },
   ]
 
-  const simpleSuggestions = ["ما هو الذكاء الاصطناعي؟", "اشرح لي البرمجة", "ساعدني في كتابة كود", "أريد تعلم شيء جديد"]
+  const simpleSuggestions = [
+    "ما هي أحدث التطورات في الذكاء الاصطناعي؟",
+    "اشرح لي مفهوم التعلم الآلي",
+    "كيف يمكنني تحسين مهاراتي في البرمجة؟",
+    "ما هي أفضل الممارسات في تطوير الويب؟",
+  ]
 
   const handleChipClick = (suggestion) => {
     if (typeof suggestion === "object") {
@@ -113,7 +118,7 @@ const SuggestionChips = ({ onSuggestionClick, disabled }) => {
         ))}
       </div>
 
-      <div className="flex flex-wrap gap-2 p-4">
+      <div className="flex flex-wrap gap-2 justify-center">
         {simpleSuggestions.map((suggestion, index) => (
           <Button
             key={index}
@@ -121,7 +126,7 @@ const SuggestionChips = ({ onSuggestionClick, disabled }) => {
             size="sm"
             onClick={() => handleChipClick(suggestion)}
             disabled={disabled}
-            className="text-sm"
+            className="text-xs"
           >
             {suggestion}
           </Button>
@@ -139,5 +144,3 @@ const SuggestionChips = ({ onSuggestionClick, disabled }) => {
     </div>
   )
 }
-
-export default SuggestionChips

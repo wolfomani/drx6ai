@@ -12,9 +12,10 @@
   --accent: #58a6ff;
   --transition: all 0.25s ease;
   --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --chip-color: #58a6ff;
   max-width: 1280px;
   margin: 0 auto;
-  padding: 0;
+  padding: 2rem;
   text-align: center;
 }
 
@@ -108,6 +109,40 @@ body {
     transform: rotate(0deg);
   }
   to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes slideInFromTop {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInFromBottom {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes recordingPulse {
+  0% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1.5);
+    opacity: 0;
+  }
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
     transform: rotate(360deg);
   }
 }
@@ -384,13 +419,6 @@ body {
   transform: translateY(-10px);
 }
 
-@keyframes slideInFromTop {
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
 .model-option:last-child {
   border-bottom: none;
 }
@@ -470,25 +498,26 @@ body {
 /* شرائح الاقتراحات */
 .suggestion-chips-container {
   width: 100%;
+  max-width: 4xl;
+  margin: 0 auto;
   margin-bottom: 2rem;
 }
 
 .chips-header {
   text-align: center;
-  margin-bottom: 1.5rem;
+  margin-bottom: 6rem;
 }
 
 .chips-title {
   font-size: 1.1rem;
   font-weight: 600;
-  color: var(--fg-primary);
+  color: #888;
   margin-bottom: 0.5rem;
 }
 
 .chips-subtitle {
   font-size: 0.85rem;
-  color: var(--fg-secondary);
-  margin: 0;
+  color: #666;
 }
 
 .suggestion-chips {
@@ -496,6 +525,7 @@ body {
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 1rem;
   width: 100%;
+  margin-bottom: 6rem;
 }
 
 .suggestion-chip {
@@ -526,13 +556,13 @@ body {
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(135deg, transparent, rgba(255, 255, 255, 0.02));
-  opacity: 0;
+  background: var(--chip-color);
+  opacity: 0.1;
   transition: var(--transition);
 }
 
 .suggestion-chip:hover .chip-background {
-  opacity: 1;
+  opacity: 0.5;
 }
 
 .chip-content {
@@ -541,6 +571,9 @@ body {
   gap: 1rem;
   position: relative;
   z-index: 1;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
 }
 
 .chip-icon-wrapper {
@@ -553,11 +586,14 @@ body {
   justify-content: center;
   flex-shrink: 0;
   transition: var(--transition);
+  margin-bottom: 2rem;
 }
 
 .chip-icon {
   color: white;
   transition: var(--transition);
+  width: 5rem;
+  height: 5rem;
 }
 
 .suggestion-chip:hover .chip-icon-wrapper {
@@ -576,11 +612,12 @@ body {
   font-weight: 600;
   font-size: 0.95rem;
   margin-bottom: 0.2rem;
+  color: #888;
 }
 
 .chip-category {
   font-size: 0.75rem;
-  color: var(--fg-secondary);
+  color: #666;
   background: var(--surface-l3);
   padding: 0.2rem 0.5rem;
   border-radius: 8px;
@@ -589,19 +626,20 @@ body {
 .chip-hover-effect {
   position: absolute;
   top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-  transition: left 0.6s ease;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--chip-color);
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
 
 .suggestion-chip:hover .chip-hover-effect {
-  left: 100%;
+  opacity: 0.5;
 }
 
 .scroll-indicator {
-  display: none;
+  display: flex;
   justify-content: center;
   margin-top: 1rem;
 }
@@ -615,9 +653,9 @@ body {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: var(--fg-secondary);
+  background: #ccc;
   opacity: 0.3;
-  transition: var(--transition);
+  transition: opacity 0.3s ease;
 }
 
 .scroll-dot.active {
@@ -852,6 +890,16 @@ body {
     --bg-base: #0a0a0a;
     --surface-l2: #1a1a1a;
     --surface-l3: #2a2a2a;
+    --fg-primary: #e7e7e7;
+    --fg-secondary: #8a8a8a;
+    --border-l1: #3a3b3e;
+    --button-primary: #eff3f4;
+    --button-primary-text: #0f1419;
+    --button-ghost-hover: rgba(239, 243, 244, 0.1);
+    --accent: #58a6ff;
+    --transition: all 0.25s ease;
+    --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --chip-color: #58a6ff;
   }
 }
 
@@ -1087,13 +1135,6 @@ body {
   transform: translateY(10px);
 }
 
-@keyframes slideInFromBottom {
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
 .attachment-option:hover {
   background: var(--surface-l3);
 }
@@ -1114,17 +1155,6 @@ body {
   border-radius: 50%;
   transform: translate(-50%, -50%);
   animation: recordingPulse 1.5s ease-out infinite;
-}
-
-@keyframes recordingPulse {
-  0% {
-    transform: translate(-50%, -50%) scale(1);
-    opacity: 1;
-  }
-  100% {
-    transform: translate(-50%, -50%) scale(1.5);
-    opacity: 0;
-  }
 }
 
 .send-button {
@@ -1170,15 +1200,6 @@ body {
   border-top: 2px solid white;
   border-radius: 50%;
   animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
 }
 
 .character-counter {
