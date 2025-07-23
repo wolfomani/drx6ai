@@ -1,28 +1,26 @@
-export const models = [
+export const chatModels = [
   {
-    id: "chat-model",
-    name: "Grok Vision",
-    description: "نموذج متقدم للدردشة مع دعم الصور",
-    provider: "xAI",
-    maxTokens: 4096,
-    supportsReasoning: false,
+    id: "deepseek",
+    name: "DeepSeek",
+    description: "نموذج متقدم للمحادثة والتفكير العميق",
+    features: ["تفكير منطقي", "إجابات مفصلة", "دعم العربية"],
   },
   {
-    id: "chat-model-reasoning",
-    name: "Grok Reasoning",
-    description: "نموذج متقدم مع قدرات التفكير العميق",
-    provider: "xAI",
-    maxTokens: 4096,
-    supportsReasoning: true,
+    id: "groq",
+    name: "Groq",
+    description: "نموذج سريع وفعال للاستجابة الفورية",
+    features: ["سرعة عالية", "كفاءة ممتازة", "استجابة سريعة"],
   },
   {
-    id: "title-model",
-    name: "Grok Title",
-    description: "نموذج لإنشاء العناوين",
-    provider: "xAI",
-    maxTokens: 1024,
-    supportsReasoning: false,
+    id: "together",
+    name: "Together",
+    description: "نموذج متعدد الاستخدامات للمهام المختلفة",
+    features: ["تنوع المهام", "مرونة عالية", "أداء متوازن"],
   },
-] as const
-
-export type ModelId = (typeof models)[number]["id"]
+  {
+    id: "gemini",
+    name: "Gemini",
+    description: "نموذج Google المتطور للذكاء الاصطناعي",
+    features: ["تقنية متقدمة", "فهم عميق", "إبداع عالي"],
+  },
+]

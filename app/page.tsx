@@ -1,153 +1,228 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { ModelSelector } from "../components/ModelSelector"
-import { ChatInput } from "../components/ChatInput"
+import { useState, useRef, useEffect } from "react"
+import { Search } from "lucide-react"
+import ModelSelector from "../components/ModelSelector"
+import ChatInput from "../components/ChatInput"
 import { ChatMessages } from "../components/ChatMessages"
 import { useMessages } from "../hooks/use-messages"
-import { useIsMobile } from "../hooks/use-mobile"
-import Image from "next/image"
+import { chatModels } from "../lib/models"
+import "./App.css"
 
-export default function HomePage() {
+function App() {
   const [messages, setMessages] = useState([])
+  const [selectedModel, setSelectedModel] = useState("together")
   const [isLoading, setIsLoading] = useState(false)
-  const [selectedModel, setSelectedModel] = useState("grok-3")
-  const isMobile = useIsMobile()
+  const abortControllerRef = useRef(null)
 
-  const { containerRef, endRef, isAtBottom, scrollToBottom, onViewportEnter, onViewportLeave, hasSentMessage } =
-    useMessages({
-      chatId: "main-chat",
-      status: isLoading ? "loading" : "idle",
-    })
+  const { containerRef, scrollToBottom } = useMessages({
+    chatId: "main-chat",
+    status: isLoading ? "streaming" : "idle",
+  })
 
-  const handleSendMessage = async (message: string) => {
-    if (!message.trim()) return
+  const getModeDisplayText = (mode) => {
+    switch (mode) {
+      case "reasoning":
+        return "🧠 [تفكير عميق R1]"
+      case "expert":
+        return "👨‍💻 [وضع الخبير المطلق]"
+      case "planets":
+        return "🌐 [بحث]"
+      default:
+        return ""
+    }
+  }
+
+  const handleSendMessage = async (message, mode = "default") => {
+    if (!message.trim() || isLoading) return
+
+    let displayMessage = message
+    const modeText = getModeDisplayText(mode)
+    if (modeText) {
+      displayMessage = `${modeText} ${message}`
+    }
 
     const userMessage = {
       id: Date.now().toString(),
       role: "user",
-      content: message,
-      timestamp: new Date(),
+      content: displayMessage,
+      timestamp: new Date().toISOString(),
     }
 
     setMessages((prev) => [...prev, userMessage])
     setIsLoading(true)
 
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort()
+    }
+
+    abortControllerRef.current = new AbortController()
+
     try {
+      console.log("إرسال رسالة إلى:", selectedModel)
+      console.log("محتوى الرسالة:", message)
+      console.log("الوضع:", mode)
+
+      const requestBody = {
+        message: message,
+        model: selectedModel,
+        mode: mode,
+      }
+
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          messages: [...messages, userMessage],
-          model: selectedModel,
-        }),
+        body: JSON.stringify(requestBody),
+        signal: abortControllerRef.current.signal,
       })
 
+      console.log("حالة الاستجابة:", response.status)
+
+      const responseText = await response.text()
+      console.log("Raw response:", responseText)
+
       if (!response.ok) {
-        throw new Error("فشل في إرسال الرسالة")
+        let errorData
+        try {
+          errorData = JSON.parse(responseText)
+        } catch (e) {
+          errorData = { error: responseText }
+        }
+        console.error("خطأ من الخادم:", errorData)
+        throw new Error(errorData.error || `HTTP error! status: ${response.status}`)
       }
 
-      const data = await response.json()
+      let data
+      try {
+        data = JSON.parse(responseText)
+      } catch (parseError) {
+        console.error("Failed to parse response JSON:", parseError)
+        throw new Error("Invalid JSON response from server")
+      }
+
+      console.log("تم استلام الرد:", data)
 
       const assistantMessage = {
         id: (Date.now() + 1).toString(),
         role: "assistant",
-        content: data.message || "عذراً، حدث خطأ في الاستجابة",
-        timestamp: new Date(),
+        content: data.response,
+        reasoning_content: data.reasoning || null,
+        timestamp: new Date().toISOString(),
+        mode: data.mode || mode,
       }
 
       setMessages((prev) => [...prev, assistantMessage])
     } catch (error) {
-      console.error("Error sending message:", error)
-      const errorMessage = {
+      if (error.name === "AbortError") {
+        console.log("تم إلغاء الطلب")
+        return
+      }
+
+      console.error("خطأ في إرسال الرسالة:", error)
+
+      let errorMessage = "حدث خطأ غير متوقع"
+
+      if (error.message.includes("timeout") || error.message.includes("408")) {
+        errorMessage = "انتهت مهلة الاستجابة ⏰\nيرجى المحاولة مرة أخرى بسؤال أقصر أو تبسيط الطلب."
+      } else if (error.message.includes("500")) {
+        errorMessage = "خطأ في الخادم 🔧\nيرجى المحاولة مرة أخرى بعد قليل."
+      } else if (error.message.includes("API")) {
+        errorMessage = "مشكلة في الاتصال بالذكاء الاصطناعي 🤖\nيرجى تجربة نموذج آخر."
+      } else {
+        errorMessage = `حدث خطأ: ${error.message}`
+      }
+
+      const errorMessageObj = {
         id: (Date.now() + 1).toString(),
         role: "assistant",
-        content: "عذراً، حدث خطأ في إرسال الرسالة. يرجى المحاولة مرة أخرى.",
-        timestamp: new Date(),
+        content: errorMessage,
+        timestamp: new Date().toISOString(),
       }
-      setMessages((prev) => [...prev, errorMessage])
+
+      setMessages((prev) => [...prev, errorMessageObj])
     } finally {
       setIsLoading(false)
+      abortControllerRef.current = null
     }
   }
 
+  const handleSuggestionClick = (suggestion) => {
+    handleSendMessage(suggestion)
+  }
+
+  const handleModelChange = (modelId) => {
+    setSelectedModel(modelId)
+    console.log("تم تغيير النموذج إلى:", modelId)
+  }
+
   useEffect(() => {
-    if (messages.length > 0) {
-      scrollToBottom("smooth")
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort()
+      }
     }
-  }, [messages, scrollToBottom])
+  }, [])
+
+  const hasMessages = messages.length > 0
 
   return (
-    <div className="flex flex-col h-screen bg-background">
-      {/* Header with model selector - only show when there are messages */}
-      {messages.length > 0 && (
-        <div className="border-b border-border p-4">
-          <div className="flex items-center justify-between max-w-4xl mx-auto">
-            <div className="flex items-center gap-3">
-              <Image src="/drx-logo.png" alt="Dr.X Logo" width={32} height={32} className="logo-nav" />
-              <h1 className="text-lg font-semibold">Dr.X AI</h1>
-            </div>
-            <ModelSelector selectedModel={selectedModel} onModelChange={setSelectedModel} />
-          </div>
+    <div className="app-container">
+      <nav className="top-nav">
+        <div className="nav-logo">
+          <img src="/drx-logo.png" alt="Dr.X" className="logo-img" />
         </div>
-      )}
+        <div className="nav-actions">
+          <button className="nav-button" aria-label="السجل">
+            <Search size={20} />
+          </button>
+          <button className="login-button">تسجيل الدخول</button>
+        </div>
+      </nav>
 
-      {/* Main content area */}
-      <div className="flex-1 flex flex-col">
-        {messages.length === 0 ? (
-          /* Welcome screen */
-          <div className="flex-1 flex flex-col items-center justify-center p-8">
-            <div className="text-center space-y-6 max-w-2xl">
-              <div className="logo-container fade-in">
-                <Image src="/drx-logo.png" alt="Dr.X Logo" width={80} height={80} className="logo-main" />
-              </div>
-              <div className="space-y-2 fade-in">
-                <h1 className="text-4xl font-bold text-foreground">مرحباً بك في Dr.X AI</h1>
-                <p className="text-xl text-muted-foreground">مساعدك الذكي المتقدم يدعم اللغة العربية</p>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-muted-foreground fade-in">
-                <div className="p-4 rounded-lg bg-muted/50">
-                  <h3 className="font-semibold mb-2">🤖 نماذج متعددة</h3>
-                  <p>دعم لأحدث نماذج الذكاء الاصطناعي</p>
-                </div>
-                <div className="p-4 rounded-lg bg-muted/50">
-                  <h3 className="font-semibold mb-2">🧠 التفكير المنطقي</h3>
-                  <p>قدرات تحليل وتفكير متقدمة</p>
-                </div>
-                <div className="p-4 rounded-lg bg-muted/50">
-                  <h3 className="font-semibold mb-2">🔍 البحث الذكي</h3>
-                  <p>إمكانيات بحث وتحليل شاملة</p>
-                </div>
-                <div className="p-4 rounded-lg bg-muted/50">
-                  <h3 className="font-semibold mb-2">🌙 واجهة متكيفة</h3>
-                  <p>دعم الوضع المظلم والفاتح</p>
-                </div>
-              </div>
+      <main className={`main-container ${hasMessages ? "with-messages" : ""}`}>
+        {!hasMessages && (
+          <>
+            <div className="main-logo animate-fade-in">
+              <img src="/drx-logo.png" alt="Dr.X" className="main-logo-img" />
             </div>
-          </div>
-        ) : (
-          /* Chat messages */
-          <div ref={containerRef} className="flex-1 overflow-y-auto p-4">
-            <div className="max-w-4xl mx-auto">
-              <ChatMessages messages={messages} isLoading={isLoading} />
-              <div ref={endRef} />
-            </div>
-          </div>
+
+            <h1 className="welcome-title animate-fade-in">مرحباً. أنا dr.x.</h1>
+            <p className="welcome-subtitle animate-fade-in">كيف يمكنني مساعدتك اليوم؟</p>
+          </>
         )}
 
-        {/* Chat input */}
-        <div className="border-t border-border p-4">
-          <div className="max-w-4xl mx-auto">
-            <ChatInput
-              onSendMessage={handleSendMessage}
-              isLoading={isLoading}
-              placeholder={messages.length === 0 ? "اكتب رسالتك هنا لبدء المحادثة مع Dr.X AI..." : "اكتب رسالتك هنا..."}
-            />
-          </div>
-        </div>
-      </div>
+        {hasMessages && (
+          <>
+            <div style={{ alignSelf: "flex-start", marginBottom: "1rem" }}>
+              <ModelSelector selectedModel={selectedModel} onModelChange={handleModelChange} models={chatModels} />
+            </div>
+
+            <div ref={containerRef} className="messages-container flex-1 overflow-y-auto">
+              <ChatMessages messages={messages} isLoading={isLoading} />
+            </div>
+          </>
+        )}
+
+        <ChatInput onSendMessage={handleSendMessage} isLoading={isLoading} isInitialScreen={!hasMessages} />
+
+        <p className="footer-text">
+          بإرسالك رسالة إلى dr.x، فإنك توافق على{" "}
+          <a href="https://x.ai/legal/terms-of-service" target="_blank" rel="noopener noreferrer">
+            الشروط
+          </a>{" "}
+          و{" "}
+          <a href="https://x.ai/legal/privacy-policy" target="_blank" rel="noopener noreferrer">
+            سياسة الخصوصية
+          </a>
+          .
+        </p>
+      </main>
     </div>
   )
+}
+
+export default function Page() {
+  return <App />
 }

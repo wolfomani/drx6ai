@@ -1,33 +1,15 @@
 "use client"
 
 import type React from "react"
-import { createContext, useContext, useMemo, useState } from "react"
-import type { DataUIPart } from "ai"
-import type { CustomUIDataTypes } from "@/lib/types"
 
-interface DataStreamContextValue {
-  dataStream: DataUIPart<CustomUIDataTypes>[]
-  setDataStream: React.Dispatch<React.SetStateAction<DataUIPart<CustomUIDataTypes>[]>>
-}
+import { createContext, useContext } from "react"
 
-const DataStreamContext = createContext<DataStreamContextValue | null>(null)
-
-export function DataStreamProvider({
-  children,
-}: {
-  children: React.ReactNode
-}) {
-  const [dataStream, setDataStream] = useState<DataUIPart<CustomUIDataTypes>[]>([])
-
-  const value = useMemo(() => ({ dataStream, setDataStream }), [dataStream])
-
-  return <DataStreamContext.Provider value={value}>{children}</DataStreamContext.Provider>
-}
+const DataStreamContext = createContext({})
 
 export function useDataStream() {
-  const context = useContext(DataStreamContext)
-  if (!context) {
-    throw new Error("useDataStream must be used within a DataStreamProvider")
-  }
-  return context
+  return useContext(DataStreamContext)
+}
+
+export function DataStreamProvider({ children }: { children: React.ReactNode }) {
+  return <DataStreamContext.Provider value={{}}>{children}</DataStreamContext.Provider>
 }
