@@ -1,316 +1,224 @@
-export async function POST(request) {
-  console.log("[SERVER]🚀 API Chat Route - بدء معالجة الطلب")
+import { NextResponse } from "next/server"
+
+// تكوين timeout للطلبات
+const REQUEST_TIMEOUT = 45000 // 45 ثانية
+
+// دالة مساعدة لإنشاء timeout
+function createTimeout(ms) {
+  return new Promise((_, reject) => {
+    setTimeout(() => reject(new Error("Request timeout")), ms)
+  })
+}
+
+// دالة مساعدة لإرسال طلب مع timeout
+async function fetchWithTimeout(url, options, timeoutMs = REQUEST_TIMEOUT) {
+  const controller = new AbortController()
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs)
 
   try {
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal,
+    })
+    clearTimeout(timeoutId)
+    return response
+  } catch (error) {
+    clearTimeout(timeoutId)
+    if (error.name === "AbortError") {
+      throw new Error("Request timeout - الطلب استغرق وقتاً أطول من المتوقع")
+    }
+    throw error
+  }
+}
+
+export async function POST(request) {
+  console.log("🚀 بدء معالجة طلب الدردشة")
+
+  try {
+    // التحقق من وجود البيانات
     const body = await request.json()
     const { message, model, mode } = body
 
-    console.log("[SERVER]📝 تفاصيل الطلب:", message)
-    console.log("[SERVER]🤖 النموذج المحدد:", model)
-    console.log("[SERVER]🎯 الوضع:", mode)
+    console.log("📝 بيانات الطلب:", { message: message?.substring(0, 100), model, mode })
 
-    // فحص مفاتيح API المتاحة
-    const apiKeys = {
-      deepseek: process.env.DEEPSEEK_API_KEY ? "موجود" : "غير موجود",
-      groq: process.env.GROQ_API_KEY ? "موجود" : "غير موجود",
-      together: process.env.TOGETHER_API_KEY ? "موجود" : "غير موجود",
-      gemini: process.env.GEMINI_API_KEY ? "موجود" : "غير موجود",
+    if (!message || !message.trim()) {
+      console.log("❌ رسالة فارغة")
+      return NextResponse.json({ error: "الرسالة مطلوبة" }, { status: 400 })
     }
 
-    console.log(
-      "[SERVER]🔑 فحص مفاتيح API:",
-      JSON.stringify(Object.entries(apiKeys).map(([key, value]) => ({ [key]: value }))),
-    )
+    // اختيار النموذج والإعدادات
+    let apiUrl, apiKey, modelName, headers
 
-    if (!message || message.trim() === "") {
-      return new Response(JSON.stringify({ error: "الرسالة مطلوبة" }), {
-        status: 400,
-        headers: { "Content-Type": "application/json" },
-      })
+    switch (model) {
+      case "deepseek":
+        apiUrl = process.env.DEEPSEEK_API_URL || "https://api.deepseek.com/v1/chat/completions"
+        apiKey = process.env.DEEPSEEK_API_KEY
+        modelName = process.env.DEEPSEEK_AP_MODEL || "deepseek-chat"
+        break
+
+      case "groq":
+        apiUrl = process.env.GROQ_API_URL || "https://api.groq.com/openai/v1/chat/completions"
+        apiKey = process.env.GROQ_API_KEY
+        modelName = process.env.GROQ_API_MODEL || "llama-3.1-70b-versatile"
+        break
+
+      case "together":
+        apiUrl = process.env.TOGETHER_API_URL || "https://api.together.xyz/v1/chat/completions"
+        apiKey = process.env.TOGETHER_API_KEY
+        modelName = process.env.TOGETHER_API_MODEL || "meta-llama/Llama-3.2-11B-Vision-Instruct-Turbo"
+        break
+
+      case "gemini":
+        apiUrl =
+          process.env.GENERATE_CONTENT_API ||
+          "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent"
+        apiKey = process.env.GEMINI_API_KEY
+        modelName = process.env.MODEL_ID || "gemini-1.5-flash-latest"
+        break
+
+      default:
+        console.log("❌ نموذج غير مدعوم:", model)
+        return NextResponse.json({ error: "نموذج غير مدعوم" }, { status: 400 })
     }
 
-    // إنشاء AbortController للتحكم في timeout
-    const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), 45000) // 45 ثانية
+    // التحقق من وجود API Key
+    if (!apiKey) {
+      console.log("❌ مفتاح API مفقود للنموذج:", model)
+      return NextResponse.json({ error: `مفتاح API مفقود للنموذج ${model}` }, { status: 500 })
+    }
 
-    let response
-    const reasoning = null
+    console.log("🔑 استخدام النموذج:", modelName)
 
-    try {
-      // تحديد النموذج والـ API المناسب
-      switch (model) {
-        case "deepseek":
-          if (!process.env.DEEPSEEK_API_KEY) {
-            throw new Error("مفتاح DeepSeek API غير متوفر")
-          }
-          response = await callDeepSeekAPI(message, mode, controller.signal)
-          break
+    // إعداد الرسائل حسب الوضع
+    let systemPrompt = "أنت مساعد ذكي مفيد. أجب باللغة العربية."
 
-        case "groq":
-          if (!process.env.GROQ_API_KEY) {
-            throw new Error("مفتاح Groq API غير متوفر")
-          }
-          response = await callGroqAPI(message, mode, controller.signal)
-          break
+    if (mode === "reasoning") {
+      systemPrompt =
+        "أنت مساعد ذكي متخصص في التفكير العميق والتحليل المنطقي. فكر خطوة بخطوة وقدم تحليلاً مفصلاً. أجب باللغة العربية."
+    } else if (mode === "expert") {
+      systemPrompt = "أنت خبير متخصص في جميع المجالات. قدم إجابات متقدمة ومفصلة مع أمثلة عملية. أجب باللغة العربية."
+    } else if (mode === "planets") {
+      systemPrompt =
+        "أنت خبير في علم الفلك والكواكب. قدم معلومات دقيقة ومفصلة عن الكواكب والنجوم والفضاء. أجب باللغة العربية."
+    }
 
-        case "together":
-          if (!process.env.TOGETHER_API_KEY) {
-            throw new Error("مفتاح Together API غير متوفر")
-          }
-          response = await callTogetherAPI(message, mode, controller.signal)
-          break
+    // إعداد الطلب حسب النموذج
+    let requestBody, requestHeaders
 
-        case "gemini":
-          if (!process.env.GEMINI_API_KEY) {
-            throw new Error("مفتاح Gemini API غير متوفر")
-          }
-          response = await callGeminiAPI(message, mode, controller.signal)
-          break
-
-        default:
-          throw new Error(`نموذج غير مدعوم: ${model}`)
-      }
-
-      clearTimeout(timeoutId)
-      console.log("[SERVER]✅ تم الحصول على الرد بنجاح")
-
-      return new Response(
-        JSON.stringify({
-          response: response.content,
-          reasoning: response.reasoning || null,
-          mode: mode,
-        }),
-        {
-          status: 200,
-          headers: { "Content-Type": "application/json" },
-        },
-      )
-    } catch (apiError) {
-      clearTimeout(timeoutId)
-
-      if (apiError.name === "AbortError") {
-        console.log("[SERVER]⏰ انتهت مهلة الطلب")
-        return new Response(
-          JSON.stringify({
-            error: "انتهت مهلة الاستجابة. يرجى المحاولة مرة أخرى بسؤال أقصر.",
-          }),
+    if (model === "gemini") {
+      // تنسيق خاص بـ Gemini
+      requestBody = {
+        contents: [
           {
-            status: 408,
-            headers: { "Content-Type": "application/json" },
+            parts: [
+              {
+                text: `${systemPrompt}\n\nالسؤال: ${message}`,
+              },
+            ],
           },
-        )
+        ],
+        generationConfig: {
+          temperature: 0.7,
+          maxOutputTokens: 2048,
+        },
+      }
+      requestHeaders = {
+        "Content-Type": "application/json",
+        "x-goog-api-key": apiKey,
+      }
+      apiUrl = `${apiUrl}?key=${apiKey}`
+    } else {
+      // تنسيق OpenAI المعياري
+      requestBody = {
+        model: modelName,
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: message },
+        ],
+        temperature: 0.7,
+        max_tokens: 2048,
+      }
+      requestHeaders = {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      }
+    }
+
+    console.log("📤 إرسال الطلب إلى:", apiUrl.split("?")[0])
+
+    // إرسال الطلب مع timeout
+    const response = await fetchWithTimeout(apiUrl, {
+      method: "POST",
+      headers: requestHeaders,
+      body: JSON.stringify(requestBody),
+    })
+
+    console.log("📥 حالة الاستجابة:", response.status)
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error("❌ خطأ من API:", errorText)
+
+      let errorMessage = "حدث خطأ في الخادم"
+      if (response.status === 401) {
+        errorMessage = "خطأ في المصادقة - تحقق من مفتاح API"
+      } else if (response.status === 429) {
+        errorMessage = "تم تجاوز الحد المسموح - يرجى المحاولة لاحقاً"
+      } else if (response.status === 500) {
+        errorMessage = "خطأ في الخادم - يرجى المحاولة لاحقاً"
       }
 
-      console.error("[SERVER]❌ خطأ في API:", apiError.message)
-      return new Response(
-        JSON.stringify({
-          error: `خطأ في ${model}: ${apiError.message}`,
-        }),
-        {
-          status: 500,
-          headers: { "Content-Type": "application/json" },
-        },
-      )
+      return NextResponse.json({ error: errorMessage }, { status: response.status })
     }
+
+    const data = await response.json()
+    console.log("✅ تم استلام الرد بنجاح")
+
+    // استخراج النص حسب النموذج
+    let responseText = ""
+    let reasoning = null
+
+    if (model === "gemini") {
+      responseText = data.candidates?.[0]?.content?.parts?.[0]?.text || "لم يتم العثور على رد"
+    } else {
+      responseText = data.choices?.[0]?.message?.content || "لم يتم العثور على رد"
+
+      // استخراج التفكير إذا كان متاحاً (للنماذج التي تدعم ذلك)
+      if (mode === "reasoning" && data.choices?.[0]?.message?.reasoning) {
+        reasoning = data.choices[0].message.reasoning
+      }
+    }
+
+    console.log("📝 طول الرد:", responseText.length)
+
+    return NextResponse.json({
+      response: responseText,
+      reasoning: reasoning,
+      mode: mode,
+      model: model,
+    })
   } catch (error) {
-    console.error("[SERVER]💥 خطأ عام:", error)
-    return new Response(
-      JSON.stringify({
-        error: "حدث خطأ في الخادم",
-      }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      },
-    )
+    console.error("💥 خطأ في معالجة الطلب:", error)
+
+    let errorMessage = "حدث خطأ غير متوقع"
+    let statusCode = 500
+
+    if (error.message.includes("timeout")) {
+      errorMessage = "انتهت مهلة الاستجابة - يرجى المحاولة مرة أخرى"
+      statusCode = 408
+    } else if (error.message.includes("fetch")) {
+      errorMessage = "خطأ في الاتصال بالخادم"
+      statusCode = 503
+    }
+
+    return NextResponse.json({ error: errorMessage }, { status: statusCode })
   }
 }
 
-// دالة استدعاء DeepSeek API
-async function callDeepSeekAPI(message, mode, signal) {
-  const apiUrl = process.env.DEEPSEEK_API_URL || "https://api.deepseek.com/v1/chat/completions"
-  const modelName = process.env.DEEPSEEK_AP_MODEL || "deepseek-chat"
-
-  let systemPrompt =
-    "أنت Dr.X، مساعد ذكي يتحدث العربية بطلاقة ويساعد المستخدمين في جميع المجالات. كن مفيداً ومختصراً ومفهوماً."
-
-  if (mode === "reasoning") {
-    systemPrompt += "\n\nاستخدم التفكير العميق والتحليل المنطقي في إجاباتك. فكر خطوة بخطوة واشرح منطقك."
-  } else if (mode === "expert") {
-    systemPrompt += "\n\nأنت في وضع الخبير المطلق. قدم إجابات تقنية متقدمة ومفصلة مع أمثلة عملية."
-  } else if (mode === "planets") {
-    systemPrompt += "\n\nأنت متخصص في علم الفلك والكواكب. قدم معلومات دقيقة ومفصلة عن الكواكب والنجوم والفضاء."
-  }
-
-  const response = await fetch(apiUrl, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${process.env.DEEPSEEK_API_KEY}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model: modelName,
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: message },
-      ],
-      temperature: 0.7,
-      max_tokens: 2000,
-    }),
-    signal,
+export async function GET() {
+  return NextResponse.json({
+    message: "Chat API is working",
+    timestamp: new Date().toISOString(),
+    models: ["deepseek", "groq", "together", "gemini"],
   })
-
-  if (!response.ok) {
-    const errorText = await response.text()
-    throw new Error(`DeepSeek API Error: ${response.status} - ${errorText}`)
-  }
-
-  const data = await response.json()
-  return {
-    content: data.choices[0].message.content,
-    reasoning: null,
-  }
-}
-
-// دالة استدعاء Groq API
-async function callGroqAPI(message, mode, signal) {
-  const apiUrl = process.env.GROQ_API_URL || "https://api.groq.com/openai/v1/chat/completions"
-  const modelName = process.env.GROQ_API_MODEL || "llama-3.1-70b-versatile"
-
-  let systemPrompt =
-    "أنت Dr.X، مساعد ذكي يتحدث العربية بطلاقة ويساعد المستخدمين في جميع المجالات. كن مفيداً ومختصراً ومفهوماً."
-
-  if (mode === "reasoning") {
-    systemPrompt += "\n\nاستخدم التفكير العميق والتحليل المنطقي في إجاباتك. فكر خطوة بخطوة واشرح منطقك."
-  } else if (mode === "expert") {
-    systemPrompt += "\n\nأنت في وضع الخبير المطلق. قدم إجابات تقنية متقدمة ومفصلة مع أمثلة عملية."
-  } else if (mode === "planets") {
-    systemPrompt += "\n\nأنت متخصص في علم الفلك والكواكب. قدم معلومات دقيقة ومفصلة عن الكواكب والنجوم والفضاء."
-  }
-
-  const response = await fetch(apiUrl, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model: modelName,
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: message },
-      ],
-      temperature: 0.7,
-      max_tokens: 2000,
-    }),
-    signal,
-  })
-
-  if (!response.ok) {
-    const errorText = await response.text()
-    throw new Error(`Groq API Error: ${response.status} - ${errorText}`)
-  }
-
-  const data = await response.json()
-  return {
-    content: data.choices[0].message.content,
-    reasoning: null,
-  }
-}
-
-// دالة استدعاء Together API
-async function callTogetherAPI(message, mode, signal) {
-  const apiUrl = process.env.TOGETHER_API_URL || "https://api.together.xyz/v1/chat/completions"
-  const modelName = process.env.TOGETHER_API_MODEL || "meta-llama/Llama-3.2-11B-Vision-Instruct-Turbo"
-
-  let systemPrompt =
-    "أنت Dr.X، مساعد ذكي يتحدث العربية بطلاقة ويساعد المستخدمين في جميع المجالات. كن مفيداً ومختصراً ومفهوماً."
-
-  if (mode === "reasoning") {
-    systemPrompt += "\n\nاستخدم التفكير العميق والتحليل المنطقي في إجاباتك. فكر خطوة بخطوة واشرح منطقك."
-  } else if (mode === "expert") {
-    systemPrompt += "\n\nأنت في وضع الخبير المطلق. قدم إجابات تقنية متقدمة ومفصلة مع أمثلة عملية."
-  } else if (mode === "planets") {
-    systemPrompt += "\n\nأنت متخصص في علم الفلك والكواكب. قدم معلومات دقيقة ومفصلة عن الكواكب والنجوم والفضاء."
-  }
-
-  const response = await fetch(apiUrl, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${process.env.TOGETHER_API_KEY}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model: modelName,
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: message },
-      ],
-      temperature: 0.7,
-      max_tokens: 2000,
-    }),
-    signal,
-  })
-
-  if (!response.ok) {
-    const errorText = await response.text()
-    throw new Error(`Together API Error: ${response.status} - ${errorText}`)
-  }
-
-  const data = await response.json()
-  return {
-    content: data.choices[0].message.content,
-    reasoning: null,
-  }
-}
-
-// دالة استدعاء Gemini API
-async function callGeminiAPI(message, mode, signal) {
-  const apiUrl = `${process.env.GENERATE_CONTENT_API}?key=${process.env.GEMINI_API_KEY}`
-  const modelName = process.env.MODEL_ID || "gemini-1.5-flash"
-
-  let systemPrompt =
-    "أنت Dr.X، مساعد ذكي يتحدث العربية بطلاقة ويساعد المستخدمين في جميع المجالات. كن مفيداً ومختصراً ومفهوماً."
-
-  if (mode === "reasoning") {
-    systemPrompt += "\n\nاستخدم التفكير العميق والتحليل المنطقي في إجاباتك. فكر خطوة بخطوة واشرح منطقك."
-  } else if (mode === "expert") {
-    systemPrompt += "\n\nأنت في وضع الخبير المطلق. قدم إجابات تقنية متقدمة ومفصلة مع أمثلة عملية."
-  } else if (mode === "planets") {
-    systemPrompt += "\n\nأنت متخصص في علم الفلك والكواكب. قدم معلومات دقيقة ومفصلة عن الكواكب والنجوم والفضاء."
-  }
-
-  const response = await fetch(apiUrl, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      contents: [
-        {
-          parts: [
-            {
-              text: `${systemPrompt}\n\nالمستخدم: ${message}`,
-            },
-          ],
-        },
-      ],
-      generationConfig: {
-        temperature: 0.7,
-        maxOutputTokens: 2000,
-      },
-    }),
-    signal,
-  })
-
-  if (!response.ok) {
-    const errorText = await response.text()
-    throw new Error(`Gemini API Error: ${response.status} - ${errorText}`)
-  }
-
-  const data = await response.json()
-  return {
-    content: data.candidates[0].content.parts[0].text,
-    reasoning: null,
-  }
 }
