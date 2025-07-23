@@ -32,6 +32,8 @@ export function MessageReasoning({ isLoading, reasoning }: MessageReasoningProps
 
     // معالجة الوسوم المختلفة
     const formatted = reasoning
+      .replace(/<Thinking>/g, '<div class="reasoning-section thinking"><strong>🤔 تفكير:</strong>')
+      .replace(/<\/Thinking>/g, "</div>")
       .replace(/<تأمل>/g, '<div class="reasoning-section reflection"><strong>🤔 تأمل:</strong>')
       .replace(/<\/تأمل>/g, "</div>")
       .replace(/<مكافأة>/g, '<div class="reasoning-section reward"><strong>⭐ مكافأة:</strong>')
@@ -96,6 +98,40 @@ export function MessageReasoning({ isLoading, reasoning }: MessageReasoningProps
           </motion.div>
         )}
       </AnimatePresence>
+
+      <style jsx>{`
+        .reasoning-section {
+          margin: 0.5rem 0;
+          padding: 0.5rem;
+          border-left: 3px solid var(--border);
+          background: var(--muted);
+          border-radius: 0.375rem;
+        }
+        .reasoning-section.thinking {
+          border-left-color: #3b82f6;
+        }
+        .reasoning-section.reflection {
+          border-left-color: #8b5cf6;
+        }
+        .reasoning-section.reward {
+          border-left-color: #f59e0b;
+        }
+        .reasoning-section.equation {
+          border-left-color: #10b981;
+        }
+        .reasoning-section.verification {
+          border-left-color: #06b6d4;
+        }
+        .reasoning-section.confirmation {
+          border-left-color: #ef4444;
+        }
+        .reasoning-section.answer {
+          border-left-color: #f97316;
+        }
+        .reasoning-section.final-reflection {
+          border-left-color: #84cc16;
+        }
+      `}</style>
     </div>
   )
 }

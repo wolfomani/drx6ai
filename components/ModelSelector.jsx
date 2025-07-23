@@ -1,103 +1,80 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
-import { ChevronDown, Brain, Zap, Users, Sparkles } from "lucide-react"
+import { useState } from "react"
+import { ChevronDown, Bot, Zap, Search, Brain } from "lucide-react"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { Button } from "@/components/ui/button"
 
-const ModelSelector = ({ selectedModel, onModelChange, models }) => {
+const models = [
+  {
+    id: "grok-3",
+    name: "Grok-3",
+    description: "النموذج الأحدث والأكثر تطوراً",
+    icon: Bot,
+    color: "text-blue-500",
+  },
+  {
+    id: "deepseek-reasoner",
+    name: "DeepSeek Reasoner",
+    description: "متخصص في التفكير المنطقي",
+    icon: Brain,
+    color: "text-purple-500",
+  },
+  {
+    id: "qwen-qwq-32b",
+    name: "Qwen QwQ 32B",
+    description: "نموذج قوي للمحادثات المعقدة",
+    icon: Zap,
+    color: "text-orange-500",
+  },
+  {
+    id: "deepseek-v3",
+    name: "DeepSeek V3",
+    description: "نموذج متقدم للبحث والتحليل",
+    icon: Search,
+    color: "text-green-500",
+  },
+]
+
+export const ModelSelector = ({ selectedModel, onModelChange }) => {
   const [isOpen, setIsOpen] = useState(false)
-  const [hoveredModel, setHoveredModel] = useState(null)
-  const dropdownRef = useRef(null)
 
-  const modelIcons = {
-    deepseek: Brain,
-    groq: Zap,
-    together: Users,
-    gemini: Sparkles,
-  }
-
-  const selectedModelData = models.find((model) => model.id === selectedModel)
-  const SelectedIcon = modelIcons[selectedModel] || Brain
-
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setIsOpen(false)
-      }
-    }
-
-    document.addEventListener("mousedown", handleClickOutside)
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside)
-    }
-  }, [])
-
-  const handleModelSelect = (modelId) => {
-    onModelChange(modelId)
-    setIsOpen(false)
-  }
+  const currentModel = models.find((model) => model.id === selectedModel) || models[0]
+  const Icon = currentModel.icon
 
   return (
-    <div className="model-selector-container" ref={dropdownRef}>
-      <button
-        className={`model-selector ${isOpen ? "active" : ""}`}
-        onClick={() => setIsOpen(!isOpen)}
-        aria-expanded={isOpen}
-        aria-haspopup="listbox"
-      >
-        <div className="model-selector-content">
-          <SelectedIcon size={20} className="model-icon" />
-          <div className="model-text">
-            <span className="model-label">النموذج المحدد</span>
-            <span className="model-name">{selectedModelData?.name}</span>
+    <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
+      <DropdownMenuTrigger asChild>
+        <Button variant="outline" className="flex items-center gap-2 min-w-[200px] justify-between bg-transparent">
+          <div className="flex items-center gap-2">
+            <Icon className={`w-4 h-4 ${currentModel.color}`} />
+            <span className="font-medium">{currentModel.name}</span>
           </div>
-        </div>
-        <ChevronDown size={16} className={`chevron-icon ${isOpen ? "rotate" : ""}`} />
-      </button>
-
-      {isOpen && (
-        <div className="model-dropdown animate-slide-down">
-          <div className="dropdown-header">اختر النموذج المناسب لك</div>
-          {models.map((model, index) => {
-            const ModelIcon = modelIcons[model.id] || Brain
-            return (
-              <button
-                key={model.id}
-                className={`model-option ${model.id === selectedModel ? "selected" : ""} ${
-                  hoveredModel === index ? "hovered" : ""
-                }`}
-                onClick={() => handleModelSelect(model.id)}
-                onMouseEnter={() => setHoveredModel(index)}
-                onMouseLeave={() => setHoveredModel(null)}
-                style={{ animationDelay: `${index * 0.1}s` }}
-                role="option"
-                aria-selected={model.id === selectedModel}
-              >
-                <div className="model-option-content">
-                  <div className="model-option-header">
-                    <ModelIcon size={18} className="model-option-icon" />
-                    <span className="model-option-name">{model.name}</span>
-                    {model.id === selectedModel && (
-                      <div className="selected-indicator">
-                        <div className="selected-dot"></div>
-                      </div>
-                    )}
-                  </div>
-                  <p className="model-option-description">{model.description}</p>
-                  <div className="model-features">
-                    {model.features.map((feature, featureIndex) => (
-                      <span key={featureIndex} className="feature-tag">
-                        {feature}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </button>
-            )
-          })}
-        </div>
-      )}
-    </div>
+          <ChevronDown className="w-4 h-4" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-[300px]">
+        {models.map((model) => {
+          const ModelIcon = model.icon
+          return (
+            <DropdownMenuItem
+              key={model.id}
+              onClick={() => {
+                onModelChange(model.id)
+                setIsOpen(false)
+              }}
+              className="flex items-start gap-3 p-3 cursor-pointer"
+            >
+              <ModelIcon className={`w-5 h-5 mt-0.5 ${model.color}`} />
+              <div className="flex-1">
+                <div className="font-medium">{model.name}</div>
+                <div className="text-sm text-muted-foreground">{model.description}</div>
+              </div>
+              {selectedModel === model.id && <div className="w-2 h-2 bg-primary rounded-full mt-2" />}
+            </DropdownMenuItem>
+          )
+        })}
+      </DropdownMenuContent>
+    </DropdownMenu>
   )
 }
-
-export default ModelSelector
