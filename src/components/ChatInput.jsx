@@ -19,20 +19,10 @@ const ChatInput = ({ onSendMessage, isLoading }) => {
     }
   }, [message])
 
-  const handleModeClick = (mode) => {
-    if (message.trim()) {
-      onSendMessage(message.trim(), mode)
-      setMessage("")
-      if (textareaRef.current) {
-        textareaRef.current.style.height = "auto"
-      }
-    }
-  }
-
   const handleSubmit = (e) => {
     e.preventDefault()
     if (message.trim() && !isLoading) {
-      onSendMessage(message.trim(), "default")
+      onSendMessage(message.trim())
       setMessage("")
       if (textareaRef.current) {
         textareaRef.current.style.height = "auto"
@@ -93,36 +83,6 @@ const ChatInput = ({ onSendMessage, isLoading }) => {
 
           <div className="input-controls">
             <div className="controls-left">
-              <div className="mode-buttons">
-                <button
-                  type="button"
-                  className="mode-button reasoning-mode"
-                  onClick={() => handleModeClick("reasoning")}
-                  disabled={!isMessageValid || isLoading}
-                  title="تفكير عميق مع DeepSeek R1"
-                >
-                  🧠 R1
-                </button>
-                <button
-                  type="button"
-                  className="mode-button expert-mode"
-                  onClick={() => handleModeClick("expert")}
-                  disabled={!isMessageValid || isLoading}
-                  title="وضع الخبير المطلق - حلول متقدمة"
-                >
-                  👨‍💻 خبير
-                </button>
-                <button
-                  type="button"
-                  className="mode-button planets-mode"
-                  onClick={() => handleModeClick("planets")}
-                  disabled={!isMessageValid || isLoading}
-                  title="بحث متقدم في الكواكب"
-                >
-                  🔭 كواكب
-                </button>
-              </div>
-
               <div className="attachment-container">
                 <button
                   type="button"

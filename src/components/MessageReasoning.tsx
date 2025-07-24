@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { ChevronDownIcon, LoaderIcon } from "./icons"
 import { motion, AnimatePresence } from "framer-motion"
+import { Markdown } from "./markdown"
 
 interface MessageReasoningProps {
   isLoading: boolean
@@ -27,47 +28,22 @@ export function MessageReasoning({ isLoading, reasoning }: MessageReasoningProps
     },
   }
 
-  const formatReasoning = (reasoning: string) => {
-    if (!reasoning) return reasoning
-
-    // معالجة الوسوم المختلفة
-    const formatted = reasoning
-      .replace(/<تأمل>/g, '<div class="reasoning-section reflection"><strong>🤔 تأمل:</strong>')
-      .replace(/<\/تأمل>/g, "</div>")
-      .replace(/<مكافأة>/g, '<div class="reasoning-section reward"><strong>⭐ مكافأة:</strong>')
-      .replace(/<\/مكافأة>/g, "</div>")
-      .replace(/<معادلة>/g, '<div class="reasoning-section equation"><strong>📐 معادلة:</strong>')
-      .replace(/<\/معادلة>/g, "</div>")
-      .replace(/<تحقق>/g, '<div class="reasoning-section verification"><strong>✅ تحقق:</strong>')
-      .replace(/<\/تحقق>/g, "</div>")
-      .replace(/<تأكيد>/g, '<div class="reasoning-section confirmation"><strong>🎯 تأكيد:</strong>')
-      .replace(/<\/تأكيد>/g, "</div>")
-      .replace(/<إجابة>/g, '<div class="reasoning-section answer"><strong>💡 إجابة:</strong>')
-      .replace(/<\/إجابة>/g, "</div>")
-      .replace(/<تأمل نهائي>/g, '<div class="reasoning-section final-reflection"><strong>🏁 تأمل نهائي:</strong>')
-      .replace(/<\/تأمل نهائي>/g, "</div>")
-
-    return formatted
-  }
-
-  if (!reasoning && !isLoading) return null
-
   return (
     <div className="flex flex-col">
       {isLoading ? (
         <div className="flex flex-row gap-2 items-center text-sm text-muted-foreground">
-          <div className="font-medium">🔍 التفكير الداخلي للنموذج...</div>
+          <div className="font-medium">يفكر...</div>
           <div className="animate-spin">
             <LoaderIcon size={16} />
           </div>
         </div>
       ) : (
         <div className="flex flex-row gap-2 items-center text-sm text-muted-foreground">
-          <div className="font-medium">🔍 التفكير الداخلي للنموذج</div>
+          <div className="font-medium">فكر لبضع ثوانٍ</div>
           <button
             data-testid="message-reasoning-toggle"
             type="button"
-            className="cursor-pointer hover:text-foreground transition-colors p-1 rounded"
+            className="cursor-pointer hover:text-foreground transition-colors"
             onClick={() => {
               setIsExpanded(!isExpanded)
             }}
@@ -78,7 +54,7 @@ export function MessageReasoning({ isLoading, reasoning }: MessageReasoningProps
       )}
 
       <AnimatePresence initial={false}>
-        {isExpanded && reasoning && (
+        {isExpanded && (
           <motion.div
             data-testid="message-reasoning"
             key="content"
@@ -88,11 +64,9 @@ export function MessageReasoning({ isLoading, reasoning }: MessageReasoningProps
             variants={variants}
             transition={{ duration: 0.2, ease: "easeInOut" }}
             style={{ overflow: "hidden" }}
-            className="mt-2 p-3 border rounded-lg bg-muted/50 text-sm"
+            className="pl-4 text-zinc-600 dark:text-zinc-400 border-l border-border flex flex-col gap-4 mt-2"
           >
-            <div className="text-muted-foreground">
-              <div dangerouslySetInnerHTML={{ __html: formatReasoning(reasoning) }} />
-            </div>
+            <Markdown>{reasoning}</Markdown>
           </motion.div>
         )}
       </AnimatePresence>

@@ -1,87 +1,96 @@
 "use client"
-import { motion, AnimatePresence } from "framer-motion"
+
+import { useEffect, useRef } from "react"
+import { MessageCircle, User } from "lucide-react"
 import { MessageReasoning } from "./MessageReasoning"
-import { MessageActions } from "./MessageActions"
-import { Greeting } from "./Greeting"
-import { SparklesIcon } from "./icons"
-import { Markdown } from "./markdown"
+
+interface ChatMessage {
+  id: string
+  sender: "user" | "ai"
+  text: string
+  timestamp: string
+  reasoning?: string
+  isLoading?: boolean
+}
 
 interface ChatMessagesProps {
-  messages: any[]
+  messages: ChatMessage[]
   isLoading: boolean
 }
 
-export function ChatMessages({ messages, isLoading }: ChatMessagesProps) {
+const ChatMessages = ({ messages, isLoading }: ChatMessagesProps) => {
+  const messagesEndRef = useRef<HTMLDivElement>(null)
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+  }
+
+  useEffect(() => {
+    scrollToBottom()
+  }, [messages])
+
   if (messages.length === 0) {
-    return <Greeting />
+    return null
   }
 
   return (
-    <div className="flex flex-col gap-6 p-4 max-w-4xl mx-auto w-full">
-      <AnimatePresence>
+    <div className="chat-messages-container">
+      <div className="messages-list">
         {messages.map((message, index) => (
-          <motion.div
-            key={message.id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.3 }}
-            className={`flex gap-4 ${message.role === "user" ? "justify-end" : "justify-start"}`}
+          <div
+            key={message.id || index}
+            className={`message-item ${message.sender === "user" ? "user-message" : "ai-message"} animate-fade-in-up`}
+            style={{ animationDelay: `${index * 0.1}s` }}
           >
-            {message.role === "assistant" && (
-              <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center shrink-0">
-                <SparklesIcon size={16} className="text-primary-foreground" />
-              </div>
-            )}
-
-            <div className={`flex flex-col gap-2 max-w-[80%] ${message.role === "user" ? "items-end" : "items-start"}`}>
-              {message.reasoning_content && (
-                <MessageReasoning isLoading={false} reasoning={message.reasoning_content} />
-              )}
-
-              <div
-                className={`p-4 rounded-lg ${
-                  message.role === "user" ? "bg-primary text-primary-foreground" : "bg-muted"
-                }`}
-              >
-                <Markdown>{message.content}</Markdown>
-              </div>
-
-              {message.role === "assistant" && (
-                <MessageActions
-                  chatId="main-chat"
-                  message={message}
-                  isLoading={isLoading && index === messages.length - 1}
-                />
+            <div className="message-avatar">
+              {message.sender === "user" ? (
+                <User size={20} className="avatar-icon" />
+              ) : (
+                <MessageCircle size={20} className="avatar-icon" />
               )}
             </div>
-
-            {message.role === "user" && (
-              <div className="w-8 h-8 bg-muted rounded-full flex items-center justify-center shrink-0">
-                <span className="text-sm font-medium">أنت</span>
+            <div className="message-content">
+              <div className="message-header">
+                <span className="message-sender">{message.sender === "user" ? "أنت" : "Dr.X"}</span>
+                <span className="message-time">{message.timestamp}</span>
               </div>
-            )}
-          </motion.div>
+
+              {/* عرض التفكير المنطقي للرسائل من DeepSeek */}
+              {message.reasoning && (
+                <MessageReasoning isLoading={message.isLoading || false} reasoning={message.reasoning} />
+              )}
+
+              <div className="message-text">{message.text}</div>
+            </div>
+          </div>
         ))}
-      </AnimatePresence>
 
-      {isLoading && (
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex gap-4 justify-start">
-          <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center shrink-0">
-            <SparklesIcon size={16} className="text-primary-foreground" />
-          </div>
-          <div className="bg-muted p-4 rounded-lg">
-            <div className="flex items-center gap-2">
-              <div className="animate-pulse">جاري الكتابة...</div>
-              <div className="flex gap-1">
-                <div className="w-2 h-2 bg-current rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
-                <div className="w-2 h-2 bg-current rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
-                <div className="w-2 h-2 bg-current rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+        {isLoading && (
+          <div className="message-item ai-message loading-message animate-fade-in">
+            <div className="message-avatar">
+              <MessageCircle size={20} className="avatar-icon" />
+            </div>
+            <div className="message-content">
+              <div className="message-header">
+                <span className="message-sender">Dr.X</span>
+                <span className="message-time">الآن</span>
+              </div>
+              <div className="typing-indicator">
+                <div className="typing-dots">
+                  <div className="typing-dot"></div>
+                  <div className="typing-dot"></div>
+                  <div className="typing-dot"></div>
+                </div>
+                <span className="typing-text">يكتب...</span>
               </div>
             </div>
           </div>
-        </motion.div>
-      )}
+        )}
+
+        <div ref={messagesEndRef} />
+      </div>
     </div>
   )
 }
+
+export default ChatMessages

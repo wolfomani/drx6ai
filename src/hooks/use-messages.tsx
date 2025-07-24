@@ -9,10 +9,11 @@ export interface ChatMessage {
   content: string
   timestamp: string
   reasoning?: string
+  isLoading?: boolean
 }
 
 export interface UseChatHelpers {
-  status: "idle" | "loading" | "streaming" | "submitted" | "error"
+  status: "idle" | "loading" | "submitted" | "error"
 }
 
 export function useMessages({

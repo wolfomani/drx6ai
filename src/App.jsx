@@ -1,157 +1,87 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
+import { useState } from "react"
 import { Search } from "lucide-react"
 import ModelSelector from "./components/ModelSelector"
 import ChatInput from "./components/ChatInput"
-import { ChatMessages } from "./components/ChatMessages"
 import SuggestionChips from "./components/SuggestionChips"
-import { useMessages } from "./hooks/use-messages"
+import ChatMessages from "./components/ChatMessages"
 import { chatModels } from "./lib/models"
 import "./App.css"
 
-async function App() {
-  const [messages, setMessages] = useState([])
-  const [selectedModel, setSelectedModel] = useState("together")
+const DrXChatApp = () => {
+  const [selectedModel, setSelectedModel] = useState("deepseek")
   const [isLoading, setIsLoading] = useState(false)
-  const abortControllerRef = useRef(null)
+  const [messages, setMessages] = useState([])
 
-  const { containerRef, scrollToBottom } = useMessages({
-    chatId: "main-chat",
-    status: isLoading ? "streaming" : "idle",
-  })
-
-  const getModeDisplayText = (mode) => {
-    switch (mode) {
-      case "reasoning":
-        return "🧠 [تفكير عميق R1]"
-      case "expert":
-        return "👨‍💻 [وضع الخبير المطلق]"
-      case "planets":
-        return "🔭 [بحث الكواكب]"
-      default:
-        return ""
-    }
+  const handleSuggestionClick = (prompt) => {
+    handleSendMessage(prompt)
   }
 
-  const handleSendMessage = async (message, mode = "default") => {
-    if (!message.trim() || isLoading) return
-
-    // أضف معلومات الوضع للرسالة
-    let displayMessage = message
-    const modeText = getModeDisplayText(mode)
-    if (modeText) {
-      displayMessage = `${modeText} ${message}`
-    }
-
+  const handleSendMessage = async (message) => {
+    // إضافة رسالة المستخدم
     const userMessage = {
       id: Date.now().toString(),
-      role: "user",
-      content: displayMessage,
-      timestamp: new Date().toISOString(),
+      sender: "user",
+      text: message,
+      timestamp: new Date().toLocaleTimeString("ar-SA", {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
     }
 
     setMessages((prev) => [...prev, userMessage])
     setIsLoading(true)
 
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort()
-    }
-
-    abortControllerRef.current = new AbortController()
-
     try {
       console.log("إرسال رسالة إلى:", selectedModel)
-      console.log("محتوى الرسالة:", message)
-      console.log("الوضع:", mode)
-
-      const requestBody = {
-        message: message,
-        model: selectedModel,
-        mode: mode,
-      }
 
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(requestBody),
-        signal: abortControllerRef.current.signal,
+        body: JSON.stringify({
+          message,
+          model: selectedModel,
+        }),
       })
 
-      console.log("حالة الاستجابة:", response.status)
-
-      const responseText = await response.text()
-      console.log("Raw response:", responseText)
+      const data = await response.json()
 
       if (!response.ok) {
-        let errorData
-        try {
-          errorData = JSON.parse(responseText)
-        } catch (e) {
-          errorData = { error: responseText }
-        }
-        console.error("خطأ من الخادم:", errorData)
-        throw new Error(errorData.error || `HTTP error! status: ${response.status}`)
-      }
-
-      let data
-      try {
-        data = JSON.parse(responseText)
-      } catch (parseError) {
-        console.error("Failed to parse response JSON:", parseError)
-        throw new Error("Invalid JSON response from server")
+        throw new Error(data.error || "خطأ في الخادم")
       }
 
       console.log("تم استلام الرد:", data)
 
-      const assistantMessage = {
+      const aiMessage = {
         id: (Date.now() + 1).toString(),
-        role: "assistant",
-        content: data.response,
-        reasoning_content: data.reasoning || null,
-        timestamp: new Date().toISOString(),
-        mode: data.mode || mode,
+        sender: "ai",
+        text: data.response,
+        reasoning: data.reasoning || null,
+        timestamp: new Date().toLocaleTimeString("ar-SA", {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
       }
 
-      setMessages((prev) => [...prev, assistantMessage])
+      setMessages((prev) => [...prev, aiMessage])
     } catch (error) {
-      if (error.name === "AbortError") {
-        console.log("تم إلغاء الطلب")
-        return
-      }
-
       console.error("خطأ في إرسال الرسالة:", error)
-
-      let errorMessage = "حدث خطأ غير متوقع"
-
-      if (error.message.includes("timeout") || error.message.includes("408")) {
-        errorMessage = "انتهت مهلة الاستجابة ⏰\nيرجى المحاولة مرة أخرى بسؤال أقصر أو تبسيط الطلب."
-      } else if (error.message.includes("500")) {
-        errorMessage = "خطأ في الخادم 🔧\nيرجى المحاولة مرة أخرى بعد قليل."
-      } else if (error.message.includes("API")) {
-        errorMessage = "مشكلة في الاتصال بالذكاء الاصطناعي 🤖\nيرجى تجربة نموذج آخر."
-      } else {
-        errorMessage = `حدث خطأ: ${error.message}`
-      }
-
-      const errorMessageObj = {
+      const errorMessage = {
         id: (Date.now() + 1).toString(),
-        role: "assistant",
-        content: errorMessage,
-        timestamp: new Date().toISOString(),
+        sender: "ai",
+        text: `حدث خطأ: ${error.message}`,
+        timestamp: new Date().toLocaleTimeString("ar-SA", {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
       }
-
-      setMessages((prev) => [...prev, errorMessageObj])
+      setMessages((prev) => [...prev, errorMessage])
     } finally {
       setIsLoading(false)
-      abortControllerRef.current = null
     }
-  }
-
-  const handleSuggestionClick = (suggestion) => {
-    handleSendMessage(suggestion)
   }
 
   const handleModelChange = (modelId) => {
@@ -159,18 +89,11 @@ async function App() {
     console.log("تم تغيير النموذج إلى:", modelId)
   }
 
-  useEffect(() => {
-    return () => {
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort()
-      }
-    }
-  }, [])
-
   const hasMessages = messages.length > 0
 
   return (
     <div className="app-container">
+      {/* شريط التنقل العلوي */}
       <nav className="top-nav">
         <div className="nav-logo">
           <img src="/drx-logo.png" alt="Dr.X" className="logo-img" />
@@ -183,6 +106,7 @@ async function App() {
         </div>
       </nav>
 
+      {/* المحتوى الرئيسي */}
       <main className={`main-container ${hasMessages ? "with-messages" : ""}`}>
         {!hasMessages && (
           <>
@@ -190,26 +114,30 @@ async function App() {
               <img src="/drx-logo.png" alt="Dr.X" className="main-logo-img" />
             </div>
 
+            {/* منتقي النموذج */}
             <ModelSelector selectedModel={selectedModel} onModelChange={handleModelChange} models={chatModels} />
 
+            {/* شرائح الاقتراحات */}
             <SuggestionChips onSuggestionClick={handleSuggestionClick} />
           </>
         )}
 
         {hasMessages && (
           <>
+            {/* منتقي النموذج المصغر */}
             <div style={{ alignSelf: "flex-start", marginBottom: "1rem" }}>
               <ModelSelector selectedModel={selectedModel} onModelChange={handleModelChange} models={chatModels} />
             </div>
 
-            <div ref={containerRef} className="messages-container flex-1 overflow-y-auto">
-              <ChatMessages messages={messages} isLoading={isLoading} />
-            </div>
+            {/* رسائل المحادثة */}
+            <ChatMessages messages={messages} isLoading={isLoading} />
           </>
         )}
 
+        {/* منطقة الإدخال */}
         <ChatInput onSendMessage={handleSendMessage} isLoading={isLoading} />
 
+        {/* النص التذييلي */}
         <p className="footer-text">
           بإرسالك رسالة إلى Dr.X، فإنك توافق على{" "}
           <a href="https://x.ai/legal/terms-of-service" target="_blank" rel="noopener noreferrer">
@@ -226,4 +154,4 @@ async function App() {
   )
 }
 
-export default App
+export default DrXChatApp
