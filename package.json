@@ -10,8 +10,6 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@auth/core": "latest",
-    "@emotion/is-prop-valid": "latest",
     "@radix-ui/react-accordion": "latest",
     "@radix-ui/react-alert-dialog": "latest",
     "@radix-ui/react-aspect-ratio": "latest",
@@ -39,22 +37,17 @@
     "@radix-ui/react-toggle-group": "latest",
     "@radix-ui/react-tooltip": "latest",
     "@types/node": "latest",
-    "ai": "latest",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "latest",
-    "date-fns": "^2.30.0",
     "embla-carousel-react": "latest",
-    "framer-motion": "latest",
     "input-otp": "latest",
     "jiti": "latest",
     "less": "latest",
     "lightningcss": "latest",
     "lucide-react": "^0.454.0",
     "next": "15.2.4",
-    "next-auth": "latest",
     "next-themes": "latest",
-    "nodemailer": "latest",
     "path": "latest",
     "react": "^19",
     "react-day-picker": "latest",
@@ -72,8 +65,7 @@
     "terser": "latest",
     "tsx": "latest",
     "vaul": "latest",
-    "yaml": "latest",
-    "zod": "latest"
+    "yaml": "latest"
   },
   "devDependencies": {
     "@eslint/js": "^9.9.1",

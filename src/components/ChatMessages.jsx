@@ -2,24 +2,9 @@
 
 import { useEffect, useRef } from "react"
 import { MessageCircle, User } from "lucide-react"
-import { MessageReasoning } from "./MessageReasoning"
 
-interface ChatMessage {
-  id: string
-  sender: "user" | "ai"
-  text: string
-  timestamp: string
-  reasoning?: string
-  isLoading?: boolean
-}
-
-interface ChatMessagesProps {
-  messages: ChatMessage[]
-  isLoading: boolean
-}
-
-const ChatMessages = ({ messages, isLoading }: ChatMessagesProps) => {
-  const messagesEndRef = useRef<HTMLDivElement>(null)
+const ChatMessages = ({ messages, isLoading }) => {
+  const messagesEndRef = useRef(null)
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
@@ -38,7 +23,7 @@ const ChatMessages = ({ messages, isLoading }: ChatMessagesProps) => {
       <div className="messages-list">
         {messages.map((message, index) => (
           <div
-            key={message.id || index}
+            key={index}
             className={`message-item ${message.sender === "user" ? "user-message" : "ai-message"} animate-fade-in-up`}
             style={{ animationDelay: `${index * 0.1}s` }}
           >
@@ -54,12 +39,6 @@ const ChatMessages = ({ messages, isLoading }: ChatMessagesProps) => {
                 <span className="message-sender">{message.sender === "user" ? "أنت" : "Dr.X"}</span>
                 <span className="message-time">{message.timestamp}</span>
               </div>
-
-              {/* عرض التفكير المنطقي للرسائل من DeepSeek */}
-              {message.reasoning && (
-                <MessageReasoning isLoading={message.isLoading || false} reasoning={message.reasoning} />
-              )}
-
               <div className="message-text">{message.text}</div>
             </div>
           </div>

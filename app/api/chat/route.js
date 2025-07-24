@@ -20,11 +20,7 @@ export async function POST(request) {
         body = JSON.stringify({
           model: "deepseek-reasoner",
           messages: [
-            {
-              role: "system",
-              content:
-                "أنت Dr.X، مساعد ذكي يتحدث العربية بطلاقة ويساعد المستخدمين. استخدم التفكير المنطقي لتقديم إجابات دقيقة ومفيدة.",
-            },
+            { role: "system", content: "أنت Dr.X، مساعد ذكي يتحدث العربية بطلاقة ويساعد المستخدمين." },
             { role: "user", content: message },
           ],
           max_tokens: 2048,
@@ -40,7 +36,7 @@ export async function POST(request) {
           "Content-Type": "application/json",
         }
         body = JSON.stringify({
-          model: "qwen-qwq-32b",
+          model: "llama-3.3-70b-versatile",
           messages: [
             { role: "system", content: "أنت Dr.X، مساعد ذكي يتحدث العربية بطلاقة ويساعد المستخدمين." },
             { role: "user", content: message },
@@ -95,6 +91,7 @@ export async function POST(request) {
     }
 
     console.log(`🚀 استدعاء ${model} API:`, apiUrl)
+    console.log(`📝 البيانات المرسلة:`, JSON.parse(body))
 
     const response = await fetch(apiUrl, {
       method: "POST",
@@ -117,28 +114,17 @@ export async function POST(request) {
     console.log(`✅ رد ${model}:`, data)
 
     let aiResponse = ""
-    let reasoning = ""
 
-    // استخراج الرد والتفكير المنطقي حسب نوع النموذج
+    // استخراج الرد حسب نوع النموذج
     if (model === "gemini") {
       aiResponse = data.candidates?.[0]?.content?.parts?.[0]?.text || "لم أتمكن من الحصول على رد من Gemini"
-    } else if (model === "deepseek") {
-      // DeepSeek Reasoner يدعم التفكير المنطقي
-      const choice = data.choices?.[0]
-      aiResponse = choice?.message?.content || "لم أتمكن من الحصول على رد"
-
-      // استخراج التفكير المنطقي إذا كان متوفراً
-      if (choice?.message?.reasoning) {
-        reasoning = choice.message.reasoning
-      }
     } else {
-      // Groq, Together
+      // DeepSeek, Groq, Together جميعها تستخدم نفس البنية
       aiResponse = data.choices?.[0]?.message?.content || "لم أتمكن من الحصول على رد"
     }
 
     return NextResponse.json({
       response: aiResponse,
-      reasoning: reasoning || null,
       model: model,
       success: true,
     })

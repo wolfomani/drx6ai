@@ -6,13 +6,40 @@ import ModelSelector from "./components/ModelSelector"
 import ChatInput from "./components/ChatInput"
 import SuggestionChips from "./components/SuggestionChips"
 import ChatMessages from "./components/ChatMessages"
-import { chatModels } from "./lib/models"
 import "./App.css"
 
 const DrXChatApp = () => {
   const [selectedModel, setSelectedModel] = useState("deepseek")
   const [isLoading, setIsLoading] = useState(false)
   const [messages, setMessages] = useState([])
+
+  // النماذج المتاحة مع معلومات إضافية
+  const models = [
+    {
+      id: "deepseek",
+      name: "DeepSeek",
+      description: "نموذج متقدم للمحادثة والتفكير العميق",
+      features: ["تفكير عميق", "تحليل متقدم", "إبداعي"],
+    },
+    {
+      id: "groq",
+      name: "Groq",
+      description: "نموذج سريع ودقيق للاستجابة الفورية",
+      features: ["سرعة عالية", "دقة ممتازة", "كفاءة"],
+    },
+    {
+      id: "together",
+      name: "Together",
+      description: "نموذج تعاوني للمهام المعقدة",
+      features: ["تعاون", "مهام معقدة", "شامل"],
+    },
+    {
+      id: "gemini",
+      name: "Gemini",
+      description: "نموذج Google المتقدم متعدد الوسائط",
+      features: ["متعدد الوسائط", "ذكي", "متطور"],
+    },
+  ]
 
   const handleSuggestionClick = (prompt) => {
     handleSendMessage(prompt)
@@ -21,7 +48,6 @@ const DrXChatApp = () => {
   const handleSendMessage = async (message) => {
     // إضافة رسالة المستخدم
     const userMessage = {
-      id: Date.now().toString(),
       sender: "user",
       text: message,
       timestamp: new Date().toLocaleTimeString("ar-SA", {
@@ -56,10 +82,8 @@ const DrXChatApp = () => {
       console.log("تم استلام الرد:", data)
 
       const aiMessage = {
-        id: (Date.now() + 1).toString(),
         sender: "ai",
         text: data.response,
-        reasoning: data.reasoning || null,
         timestamp: new Date().toLocaleTimeString("ar-SA", {
           hour: "2-digit",
           minute: "2-digit",
@@ -70,7 +94,6 @@ const DrXChatApp = () => {
     } catch (error) {
       console.error("خطأ في إرسال الرسالة:", error)
       const errorMessage = {
-        id: (Date.now() + 1).toString(),
         sender: "ai",
         text: `حدث خطأ: ${error.message}`,
         timestamp: new Date().toLocaleTimeString("ar-SA", {
@@ -115,7 +138,7 @@ const DrXChatApp = () => {
             </div>
 
             {/* منتقي النموذج */}
-            <ModelSelector selectedModel={selectedModel} onModelChange={handleModelChange} models={chatModels} />
+            <ModelSelector selectedModel={selectedModel} onModelChange={handleModelChange} models={models} />
 
             {/* شرائح الاقتراحات */}
             <SuggestionChips onSuggestionClick={handleSuggestionClick} />
@@ -126,7 +149,7 @@ const DrXChatApp = () => {
           <>
             {/* منتقي النموذج المصغر */}
             <div style={{ alignSelf: "flex-start", marginBottom: "1rem" }}>
-              <ModelSelector selectedModel={selectedModel} onModelChange={handleModelChange} models={chatModels} />
+              <ModelSelector selectedModel={selectedModel} onModelChange={handleModelChange} models={models} />
             </div>
 
             {/* رسائل المحادثة */}
