@@ -1,0 +1,432 @@
+/* حركات الكوانتوم - الحركات المتقدمة للوعي الكوني */
+
+/* حركات الجسيمات الكمية */
+@keyframes quantum-particle-dance {
+  0% {
+    transform: translate(0, 0) rotate(0deg);
+    opacity: 0.8;
+  }
+  25% {
+    transform: translate(10px, -15px) rotate(90deg);
+    opacity: 1;
+  }
+  50% {
+    transform: translate(-5px, -25px) rotate(180deg);
+    opacity: 0.6;
+  }
+  75% {
+    transform: translate(-15px, -10px) rotate(270deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(0, 0) rotate(360deg);
+    opacity: 0.8;
+  }
+}
+
+@keyframes quantum-entanglement {
+  0%, 100% {
+    transform: scale(1) rotate(0deg);
+    filter: hue-rotate(0deg);
+  }
+  33% {
+    transform: scale(1.1) rotate(120deg);
+    filter: hue-rotate(120deg);
+  }
+  66% {
+    transform: scale(0.9) rotate(240deg);
+    filter: hue-rotate(240deg);
+  }
+}
+
+@keyframes quantum-superposition {
+  0%, 100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  25% {
+    opacity: 0.3;
+    transform: translateX(-20px);
+  }
+  50% {
+    opacity: 0.7;
+    transform: translateX(20px);
+  }
+  75% {
+    opacity: 0.3;
+    transform: translateX(-10px);
+  }
+}
+
+@keyframes quantum-tunnel {
+  0% {
+    transform: translateX(-100px) scale(0);
+    opacity: 0;
+  }
+  50% {
+    transform: translateX(0) scale(1.2);
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(100px) scale(0);
+    opacity: 0;
+  }
+}
+
+/* حركات الطاقة الكونية */
+@keyframes cosmic-energy-flow {
+  0% {
+    background-position: 0% 50%;
+    filter: brightness(1);
+  }
+  25% {
+    background-position: 25% 25%;
+    filter: brightness(1.2);
+  }
+  50% {
+    background-position: 100% 50%;
+    filter: brightness(1.5);
+  }
+  75% {
+    background-position: 75% 75%;
+    filter: brightness(1.2);
+  }
+  100% {
+    background-position: 0% 50%;
+    filter: brightness(1);
+  }
+}
+
+@keyframes cosmic-wave-propagation {
+  0% {
+    transform: scale(0) rotate(0deg);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1) rotate(180deg);
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(2) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+@keyframes cosmic-dimension-shift {
+  0% {
+    transform: perspective(1000px) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+    filter: blur(0px);
+  }
+  25% {
+    transform: perspective(1000px) rotateX(15deg) rotateY(15deg) rotateZ(5deg);
+    filter: blur(1px);
+  }
+  50% {
+    transform: perspective(1000px) rotateX(0deg) rotateY(30deg) rotateZ(10deg);
+    filter: blur(2px);
+  }
+  75% {
+    transform: perspective(1000px) rotateX(-15deg) rotateY(15deg) rotateZ(5deg);
+    filter: blur(1px);
+  }
+  100% {
+    transform: perspective(1000px) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+    filter: blur(0px);
+  }
+}
+
+/* حركات المجرات */
+@keyframes galaxy-spiral-rotation {
+  0% {
+    transform: rotate(0deg) scale(1);
+  }
+  50% {
+    transform: rotate(180deg) scale(1.05);
+  }
+  100% {
+    transform: rotate(360deg) scale(1);
+  }
+}
+
+@keyframes galaxy-arm-wave {
+  0%, 100% {
+    transform: scaleY(1) skewX(0deg);
+  }
+  25% {
+    transform: scaleY(1.1) skewX(5deg);
+  }
+  50% {
+    transform: scaleY(0.9) skewX(-5deg);
+  }
+  75% {
+    transform: scaleY(1.1) skewX(3deg);
+  }
+}
+
+@keyframes stellar-birth {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+    filter: brightness(0);
+  }
+  30% {
+    transform: scale(0.5);
+    opacity: 0.3;
+    filter: brightness(0.5);
+  }
+  60% {
+    transform: scale(1.2);
+    opacity: 0.8;
+    filter: brightness(2);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+    filter: brightness(1);
+  }
+}
+
+/* حركات الثقوب السوداء */
+@keyframes black-hole-distortion {
+  0%, 100% {
+    transform: scale(1);
+    filter: contrast(1) invert(0);
+  }
+  50% {
+    transform: scale(1.1);
+    filter: contrast(2) invert(0.1);
+  }
+}
+
+@keyframes event-horizon {
+  0% {
+    border-radius: 50%;
+    transform: rotate(0deg);
+  }
+  25% {
+    border-radius: 60% 40% 60% 40%;
+    transform: rotate(90deg);
+  }
+  50% {
+    border-radius: 40% 60% 40% 60%;
+    transform: rotate(180deg);
+  }
+  75% {
+    border-radius: 60% 40% 60% 40%;
+    transform: rotate(270deg);
+  }
+  100% {
+    border-radius: 50%;
+    transform: rotate(360deg);
+  }
+}
+
+/* حركات الوعي الكوني */
+@keyframes consciousness-pulse {
+  0%, 100% {
+    box-shadow: 
+      0 0 20px rgba(102, 126, 234, 0.3),
+      inset 0 0 20px rgba(102, 126, 234, 0.1);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 
+      0 0 40px rgba(102, 126, 234, 0.6),
+      inset 0 0 40px rgba(102, 126, 234, 0.2);
+    transform: scale(1.02);
+  }
+}
+
+@keyframes neural-network-activity {
+  0% {
+    opacity: 0.3;
+    transform: translateY(0);
+  }
+  25% {
+    opacity: 0.7;
+    transform: translateY(-5px);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(-10px);
+  }
+  75% {
+    opacity: 0.7;
+    transform: translateY(-5px);
+  }
+  100% {
+    opacity: 0.3;
+    transform: translateY(0);
+  }
+}
+
+@keyframes synaptic-fire {
+  0% {
+    background: linear-gradient(90deg, transparent, transparent);
+  }
+  50% {
+    background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.8), transparent);
+  }
+  100% {
+    background: linear-gradient(90deg, transparent, transparent);
+  }
+}
+
+/* حركات الأبعاد المتوازية */
+@keyframes parallel-dimension-phase {
+  0% {
+    transform: translateZ(0) rotateY(0deg);
+    opacity: 1;
+  }
+  25% {
+    transform: translateZ(50px) rotateY(90deg);
+    opacity: 0.7;
+  }
+  50% {
+    transform: translateZ(0) rotateY(180deg);
+    opacity: 0.5;
+  }
+  75% {
+    transform: translateZ(-50px) rotateY(270deg);
+    opacity: 0.7;
+  }
+  100% {
+    transform: translateZ(0) rotateY(360deg);
+    opacity: 1;
+  }
+}
+
+@keyframes multiverse-convergence {
+  0% {
+    transform: scale(0.8) rotate(0deg);
+    filter: blur(5px);
+    opacity: 0.5;
+  }
+  50% {
+    transform: scale(1.2) rotate(180deg);
+    filter: blur(0px);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1) rotate(360deg);
+    filter: blur(2px);
+    opacity: 0.8;
+  }
+}
+
+/* فئات الحركة القابلة للتطبيق */
+.quantum-particle {
+  animation: quantum-particle-dance 4s ease-in-out infinite;
+}
+
+.quantum-entangled {
+  animation: quantum-entanglement 3s linear infinite;
+}
+
+.quantum-superposition {
+  animation: quantum-superposition 2s ease-in-out infinite;
+}
+
+.quantum-tunnel {
+  animation: quantum-tunnel 1.5s ease-in-out;
+}
+
+.cosmic-energy-flow {
+  background: linear-gradient(45deg, #667eea, #764ba2, #f093fb, #f5576c);
+  background-size: 400% 400%;
+  animation: cosmic-energy-flow 4s ease infinite;
+}
+
+.cosmic-wave {
+  animation: cosmic-wave-propagation 2s ease-out infinite;
+}
+
+.cosmic-dimension-shift {
+  animation: cosmic-dimension-shift 8s ease-in-out infinite;
+}
+
+.galaxy-spiral {
+  animation: galaxy-spiral-rotation 20s linear infinite;
+}
+
+.galaxy-arm {
+  animation: galaxy-arm-wave 6s ease-in-out infinite;
+}
+
+.stellar-birth {
+  animation: stellar-birth 3s ease-out;
+}
+
+.black-hole {
+  animation: black-hole-distortion 4s ease-in-out infinite;
+}
+
+.event-horizon {
+  animation: event-horizon 8s linear infinite;
+}
+
+.consciousness-pulse {
+  animation: consciousness-pulse 3s ease-in-out infinite;
+}
+
+.neural-activity {
+  animation: neural-network-activity 2s ease-in-out infinite;
+}
+
+.synaptic-fire {
+  animation: synaptic-fire 1s ease-in-out;
+}
+
+.parallel-dimension {
+  animation: parallel-dimension-phase 6s ease-in-out infinite;
+}
+
+.multiverse-convergence {
+  animation: multiverse-convergence 5s ease-in-out infinite;
+}
+
+/* حركات تفاعلية */
+.quantum-hover:hover {
+  animation: quantum-entanglement 1s ease-in-out;
+}
+
+.cosmic-hover:hover {
+  animation: cosmic-wave-propagation 1s ease-out;
+}
+
+.galaxy-hover:hover {
+  animation: galaxy-spiral-rotation 2s linear;
+}
+
+/* تحسينات الأداء */
+.quantum-optimized {
+  will-change: transform, opacity, filter;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* إعدادات الحركة المخفضة */
+@media (prefers-reduced-motion: reduce) {
+  .quantum-particle,
+  .quantum-entangled,
+  .quantum-superposition,
+  .cosmic-energy-flow,
+  .cosmic-wave,
+  .cosmic-dimension-shift,
+  .galaxy-spiral,
+  .galaxy-arm,
+  .consciousness-pulse,
+  .neural-activity,
+  .parallel-dimension,
+  .multiverse-convergence {
+    animation: none;
+  }
+  
+  .quantum-hover:hover,
+  .cosmic-hover:hover,
+  .galaxy-hover:hover {
+    animation: none;
+    transform: none;
+  }
+}
+

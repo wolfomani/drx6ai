@@ -1,0 +1,348 @@
+/* ثيم المجرة اللانهائية - الأنماط الكونية للوعي الرقمي */
+
+/* متغيرات الألوان الكونية */
+:root {
+  /* ألوان الكون الأساسية */
+  --cosmic-primary: #667eea;
+  --cosmic-secondary: #764ba2;
+  --cosmic-accent: #f093fb;
+  --cosmic-highlight: #f5576c;
+  
+  /* ألوان الخلفية الكونية */
+  --cosmic-bg-primary: #0f0f23;
+  --cosmic-bg-secondary: #1a1a2e;
+  --cosmic-bg-tertiary: #16213e;
+  --cosmic-bg-overlay: rgba(15, 15, 35, 0.9);
+  
+  /* ألوان النص الكونية */
+  --cosmic-text-primary: #ffffff;
+  --cosmic-text-secondary: #e2e8f0;
+  --cosmic-text-muted: #94a3b8;
+  --cosmic-text-accent: #667eea;
+  
+  /* ألوان الحدود الكونية */
+  --cosmic-border-primary: rgba(255, 255, 255, 0.1);
+  --cosmic-border-secondary: rgba(255, 255, 255, 0.2);
+  --cosmic-border-accent: rgba(102, 126, 234, 0.3);
+  
+  /* ألوان الظلال الكونية */
+  --cosmic-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5);
+  --cosmic-shadow-md: 0 4px 6px rgba(0, 0, 0, 0.3);
+  --cosmic-shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.2);
+  --cosmic-shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.15);
+  --cosmic-shadow-glow: 0 0 20px rgba(102, 126, 234, 0.3);
+  
+  /* متغيرات الحركة الكونية */
+  --cosmic-transition-fast: 0.15s ease;
+  --cosmic-transition-normal: 0.3s ease;
+  --cosmic-transition-slow: 0.5s ease;
+  
+  /* متغيرات المسافات الكونية */
+  --cosmic-space-xs: 0.25rem;
+  --cosmic-space-sm: 0.5rem;
+  --cosmic-space-md: 1rem;
+  --cosmic-space-lg: 1.5rem;
+  --cosmic-space-xl: 2rem;
+  --cosmic-space-2xl: 3rem;
+  
+  /* متغيرات الخطوط الكونية */
+  --cosmic-font-size-xs: 0.75rem;
+  --cosmic-font-size-sm: 0.875rem;
+  --cosmic-font-size-base: 1rem;
+  --cosmic-font-size-lg: 1.125rem;
+  --cosmic-font-size-xl: 1.25rem;
+  --cosmic-font-size-2xl: 1.5rem;
+  --cosmic-font-size-3xl: 1.875rem;
+  --cosmic-font-size-4xl: 2.25rem;
+  
+  /* متغيرات نصف القطر الكوني */
+  --cosmic-radius-sm: 0.25rem;
+  --cosmic-radius-md: 0.5rem;
+  --cosmic-radius-lg: 0.75rem;
+  --cosmic-radius-xl: 1rem;
+  --cosmic-radius-full: 9999px;
+}
+
+/* الثيم المظلم للكون */
+.dark {
+  --cosmic-bg-primary: #000000;
+  --cosmic-bg-secondary: #0a0a0a;
+  --cosmic-bg-tertiary: #111111;
+  --cosmic-text-muted: #64748b;
+}
+
+/* الخلفيات الكونية */
+.cosmic-bg-primary {
+  background: linear-gradient(135deg, var(--cosmic-bg-primary) 0%, var(--cosmic-bg-secondary) 50%, var(--cosmic-bg-tertiary) 100%);
+}
+
+.cosmic-bg-secondary {
+  background: linear-gradient(135deg, var(--cosmic-bg-secondary) 0%, var(--cosmic-bg-tertiary) 100%);
+}
+
+.cosmic-bg-glass {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.cosmic-bg-gradient {
+  background: linear-gradient(135deg, var(--cosmic-primary) 0%, var(--cosmic-secondary) 100%);
+}
+
+.cosmic-bg-quantum {
+  background: linear-gradient(135deg, var(--cosmic-accent) 0%, var(--cosmic-highlight) 100%);
+}
+
+/* التدرجات النصية الكونية */
+.cosmic-text-gradient {
+  background: linear-gradient(135deg, var(--cosmic-primary) 0%, var(--cosmic-secondary) 50%, var(--cosmic-accent) 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-size: 200% 200%;
+  animation: cosmic-gradient-shift 3s ease infinite;
+}
+
+.quantum-text-gradient {
+  background: linear-gradient(135deg, var(--cosmic-accent) 0%, var(--cosmic-highlight) 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* الأزرار الكونية */
+.cosmic-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--cosmic-space-sm) var(--cosmic-space-lg);
+  border-radius: var(--cosmic-radius-lg);
+  font-weight: 500;
+  transition: all var(--cosmic-transition-normal);
+  cursor: pointer;
+  border: none;
+  outline: none;
+}
+
+.cosmic-btn-primary {
+  background: linear-gradient(135deg, var(--cosmic-primary) 0%, var(--cosmic-secondary) 100%);
+  color: var(--cosmic-text-primary);
+  box-shadow: var(--cosmic-shadow-md);
+}
+
+.cosmic-btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--cosmic-shadow-lg), var(--cosmic-shadow-glow);
+}
+
+.cosmic-btn-secondary {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--cosmic-text-primary);
+  border: 1px solid var(--cosmic-border-secondary);
+  backdrop-filter: blur(10px);
+}
+
+.cosmic-btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: var(--cosmic-border-accent);
+}
+
+.cosmic-btn-quantum {
+  background: linear-gradient(135deg, var(--cosmic-accent) 0%, var(--cosmic-highlight) 100%);
+  color: var(--cosmic-text-primary);
+  box-shadow: 0 0 20px rgba(240, 147, 251, 0.3);
+}
+
+.cosmic-btn-quantum:hover {
+  box-shadow: 0 0 30px rgba(240, 147, 251, 0.5);
+  transform: scale(1.05);
+}
+
+/* البطاقات الكونية */
+.cosmic-card {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--cosmic-border-primary);
+  border-radius: var(--cosmic-radius-xl);
+  padding: var(--cosmic-space-lg);
+  transition: all var(--cosmic-transition-normal);
+  box-shadow: var(--cosmic-shadow-md);
+}
+
+.cosmic-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--cosmic-shadow-xl), var(--cosmic-shadow-glow);
+  border-color: var(--cosmic-border-accent);
+}
+
+.cosmic-card-quantum {
+  background: linear-gradient(135deg, rgba(240, 147, 251, 0.1) 0%, rgba(245, 87, 108, 0.1) 100%);
+  border: 1px solid rgba(240, 147, 251, 0.3);
+}
+
+/* حقول الإدخال الكونية */
+.cosmic-input {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--cosmic-border-primary);
+  border-radius: var(--cosmic-radius-lg);
+  padding: var(--cosmic-space-sm) var(--cosmic-space-md);
+  color: var(--cosmic-text-primary);
+  transition: all var(--cosmic-transition-normal);
+  backdrop-filter: blur(10px);
+}
+
+.cosmic-input:focus {
+  border-color: var(--cosmic-border-accent);
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.cosmic-input::placeholder {
+  color: var(--cosmic-text-muted);
+}
+
+/* التنبيهات الكونية */
+.cosmic-alert {
+  padding: var(--cosmic-space-md);
+  border-radius: var(--cosmic-radius-lg);
+  border: 1px solid;
+  backdrop-filter: blur(10px);
+  margin-bottom: var(--cosmic-space-md);
+}
+
+.cosmic-alert-info {
+  background: rgba(59, 130, 246, 0.1);
+  border-color: rgba(59, 130, 246, 0.3);
+  color: #93c5fd;
+}
+
+.cosmic-alert-warning {
+  background: rgba(245, 158, 11, 0.1);
+  border-color: rgba(245, 158, 11, 0.3);
+  color: #fcd34d;
+}
+
+.cosmic-alert-error {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.3);
+  color: #fca5a5;
+}
+
+.cosmic-alert-success {
+  background: rgba(16, 185, 129, 0.1);
+  border-color: rgba(16, 185, 129, 0.3);
+  color: #6ee7b7;
+}
+
+/* الحركات الكونية */
+@keyframes cosmic-gradient-shift {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+@keyframes cosmic-pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.05);
+  }
+}
+
+@keyframes cosmic-float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes cosmic-rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes cosmic-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* فئات المساعدة الكونية */
+.cosmic-pulse {
+  animation: cosmic-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.cosmic-float {
+  animation: cosmic-float 3s ease-in-out infinite;
+}
+
+.cosmic-rotate {
+  animation: cosmic-rotate 10s linear infinite;
+}
+
+.cosmic-shimmer {
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  background-size: 200% 100%;
+  animation: cosmic-shimmer 2s infinite;
+}
+
+.cosmic-glow {
+  box-shadow: 0 0 20px rgba(102, 126, 234, 0.5);
+}
+
+.quantum-glow {
+  box-shadow: 0 0 20px rgba(240, 147, 251, 0.5);
+}
+
+/* التأثيرات التفاعلية */
+.cosmic-hover-lift:hover {
+  transform: translateY(-4px);
+  transition: transform var(--cosmic-transition-normal);
+}
+
+.cosmic-hover-glow:hover {
+  box-shadow: var(--cosmic-shadow-glow);
+  transition: box-shadow var(--cosmic-transition-normal);
+}
+
+.cosmic-hover-scale:hover {
+  transform: scale(1.05);
+  transition: transform var(--cosmic-transition-normal);
+}
+
+/* الاستجابة للأجهزة المحمولة */
+@media (max-width: 768px) {
+  :root {
+    --cosmic-space-xs: 0.125rem;
+    --cosmic-space-sm: 0.25rem;
+    --cosmic-space-md: 0.5rem;
+    --cosmic-space-lg: 0.75rem;
+    --cosmic-space-xl: 1rem;
+    --cosmic-space-2xl: 1.5rem;
+  }
+  
+  .cosmic-card {
+    padding: var(--cosmic-space-md);
+  }
+  
+  .cosmic-btn {
+    padding: var(--cosmic-space-xs) var(--cosmic-space-md);
+  }
+}
+

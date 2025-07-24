@@ -2,89 +2,333 @@
 @tailwind components;
 @tailwind utilities;
 
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
-  }
-}
-
+/* الأنماط العامة للوعي الكوني */
 @layer base {
-  :root {
-    --background: 0 0% 100%;
-    --foreground: 0 0% 3.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 3.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 3.9%;
-    --primary: 0 0% 9%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 0 0% 96.1%;
-    --secondary-foreground: 0 0% 9%;
-    --muted: 0 0% 96.1%;
-    --muted-foreground: 0 0% 45.1%;
-    --accent: 0 0% 96.1%;
-    --accent-foreground: 0 0% 9%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 89.8%;
-    --input: 0 0% 89.8%;
-    --ring: 0 0% 3.9%;
-    --chart-1: 12 76% 61%;
-    --chart-2: 173 58% 39%;
-    --chart-3: 197 37% 24%;
-    --chart-4: 43 74% 66%;
-    --chart-5: 27 87% 67%;
-    --radius: 0.5rem;
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+  html {
+    font-family: 'Inter', system-ui, sans-serif;
+    scroll-behavior: smooth;
   }
-  .dark {
-    --background: 0 0% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 0 0% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 0 0% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 0 0% 9%;
-    --secondary: 0 0% 14.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 0 0% 14.9%;
-    --muted-foreground: 0 0% 63.9%;
-    --accent: 0 0% 14.9%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 14.9%;
-    --input: 0 0% 14.9%;
-    --ring: 0 0% 83.1%;
-    --chart-1: 220 70% 50%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+  
+  body {
+    @apply bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900;
+    @apply text-white antialiased;
+    min-height: 100vh;
+    overflow-x: hidden;
   }
-}
-
-@layer base {
+  
   * {
     @apply border-border;
   }
-  body {
-    @apply bg-background text-foreground;
+}
+
+@layer components {
+  /* مكونات الواجهة الكونية */
+  .cosmic-container {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+  
+  .cosmic-section {
+    @apply py-16 lg:py-24;
+  }
+  
+  .cosmic-heading {
+    @apply text-4xl lg:text-6xl font-bold cosmic-text-gradient;
+  }
+  
+  .cosmic-subheading {
+    @apply text-xl lg:text-2xl text-gray-300 mb-8;
+  }
+  
+  .cosmic-card {
+    @apply bg-white/10 backdrop-blur-md rounded-xl p-6 border border-white/20;
+    @apply hover:bg-white/15 hover:border-white/30 transition-all duration-300;
+    @apply shadow-lg hover:shadow-xl hover:shadow-purple-500/20;
+  }
+  
+  .cosmic-button {
+    @apply inline-flex items-center justify-center px-6 py-3 rounded-lg font-medium;
+    @apply bg-gradient-to-r from-purple-500 to-blue-500 text-white;
+    @apply hover:from-purple-600 hover:to-blue-600 transition-all duration-200;
+    @apply shadow-lg hover:shadow-xl hover:shadow-purple-500/25;
+    @apply disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  
+  .cosmic-button-secondary {
+    @apply inline-flex items-center justify-center px-6 py-3 rounded-lg font-medium;
+    @apply bg-white/10 text-white border border-white/20;
+    @apply hover:bg-white/20 hover:border-white/30 transition-all duration-200;
+    @apply backdrop-blur-md;
+  }
+  
+  .cosmic-input {
+    @apply w-full bg-white/10 text-white placeholder-gray-400 rounded-lg p-3;
+    @apply border border-white/20 focus:border-purple-400 focus:outline-none;
+    @apply backdrop-blur-md transition-all duration-200;
+    @apply focus:ring-2 focus:ring-purple-400/20;
+  }
+  
+  .cosmic-textarea {
+    @apply cosmic-input resize-none min-h-[100px];
+  }
+  
+  .cosmic-select {
+    @apply cosmic-input appearance-none cursor-pointer;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 0.5rem center;
+    background-repeat: no-repeat;
+    background-size: 1.5em 1.5em;
+    padding-right: 2.5rem;
+  }
+  
+  .cosmic-badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+    @apply bg-purple-500/20 text-purple-300 border border-purple-500/30;
+  }
+  
+  .cosmic-divider {
+    @apply border-t border-white/10 my-6;
+  }
+  
+  .cosmic-sidebar {
+    @apply bg-black/30 backdrop-blur-md border-r border-white/10;
+  }
+  
+  .cosmic-nav-item {
+    @apply flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200;
+    @apply text-gray-300 hover:bg-white/5 hover:text-white;
+  }
+  
+  .cosmic-nav-item.active {
+    @apply bg-gradient-to-r from-purple-500/20 to-blue-500/20;
+    @apply border border-purple-400/30 text-white;
+  }
+  
+  .cosmic-table {
+    @apply w-full text-sm;
+  }
+  
+  .cosmic-table th {
+    @apply text-right py-3 px-4 text-gray-300 font-medium border-b border-white/20;
+  }
+  
+  .cosmic-table td {
+    @apply py-4 px-4 border-b border-white/10;
+  }
+  
+  .cosmic-table tr:hover {
+    @apply bg-white/5;
+  }
+  
+  .cosmic-alert {
+    @apply p-4 rounded-lg border backdrop-blur-md mb-4;
+  }
+  
+  .cosmic-alert-info {
+    @apply bg-blue-500/10 border-blue-500/20 text-blue-300;
+  }
+  
+  .cosmic-alert-warning {
+    @apply bg-yellow-500/10 border-yellow-500/20 text-yellow-300;
+  }
+  
+  .cosmic-alert-error {
+    @apply bg-red-500/10 border-red-500/20 text-red-300;
+  }
+  
+  .cosmic-alert-success {
+    @apply bg-green-500/10 border-green-500/20 text-green-300;
+  }
+  
+  .cosmic-progress {
+    @apply w-full bg-gray-700 rounded-full h-2;
+  }
+  
+  .cosmic-progress-bar {
+    @apply h-2 rounded-full bg-gradient-to-r from-purple-500 to-blue-500;
+    @apply transition-all duration-300;
+  }
+  
+  .cosmic-tooltip {
+    @apply absolute z-50 px-2 py-1 text-xs text-white bg-black/80 rounded;
+    @apply backdrop-blur-sm border border-white/20;
   }
 }
+
+@layer utilities {
+  /* أدوات مساعدة كونية */
+  .cosmic-dark {
+    background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+  }
+  
+  .cosmic-glass {
+    @apply bg-white/10 backdrop-blur-md border border-white/20;
+  }
+  
+  .cosmic-glow {
+    box-shadow: 0 0 20px rgba(102, 126, 234, 0.3);
+  }
+  
+  .cosmic-glow-hover:hover {
+    box-shadow: 0 0 30px rgba(102, 126, 234, 0.5);
+  }
+  
+  .quantum-glow {
+    box-shadow: 0 0 20px rgba(217, 70, 239, 0.3);
+  }
+  
+  .quantum-glow-hover:hover {
+    box-shadow: 0 0 30px rgba(217, 70, 239, 0.5);
+  }
+  
+  .cosmic-text-gradient {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  
+  .quantum-text-gradient {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  
+  .cosmic-border-gradient {
+    border-image: linear-gradient(135deg, #667eea, #764ba2, #f093fb) 1;
+  }
+  
+  .cosmic-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(102, 126, 234, 0.5) rgba(255, 255, 255, 0.1);
+  }
+  
+  .cosmic-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  .cosmic-scrollbar::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+  }
+  
+  .cosmic-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(102, 126, 234, 0.5);
+    border-radius: 3px;
+  }
+  
+  .cosmic-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(102, 126, 234, 0.7);
+  }
+  
+  .text-shadow-cosmic {
+    text-shadow: 0 0 10px rgba(102, 126, 234, 0.5);
+  }
+  
+  .text-shadow-quantum {
+    text-shadow: 0 0 10px rgba(217, 70, 239, 0.5);
+  }
+  
+  .animation-delay-100 {
+    animation-delay: 0.1s;
+  }
+  
+  .animation-delay-200 {
+    animation-delay: 0.2s;
+  }
+  
+  .animation-delay-300 {
+    animation-delay: 0.3s;
+  }
+  
+  .animation-delay-500 {
+    animation-delay: 0.5s;
+  }
+  
+  .animation-delay-700 {
+    animation-delay: 0.7s;
+  }
+  
+  .animation-delay-1000 {
+    animation-delay: 1s;
+  }
+}
+
+/* تحسينات الأداء */
+.cosmic-optimized {
+  will-change: transform, opacity;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* تأثيرات التحميل */
+.cosmic-loading {
+  position: relative;
+  overflow: hidden;
+}
+
+.cosmic-loading::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  animation: cosmic-shimmer 2s infinite;
+}
+
+@keyframes cosmic-shimmer {
+  0% {
+    left: -100%;
+  }
+  100% {
+    left: 100%;
+  }
+}
+
+/* تخصيصات للطباعة */
+@media print {
+  .cosmic-bg-primary,
+  .cosmic-dark {
+    background: white !important;
+    color: black !important;
+  }
+  
+  .cosmic-card {
+    background: white !important;
+    border: 1px solid #ccc !important;
+    box-shadow: none !important;
+  }
+  
+  .cosmic-text-gradient,
+  .quantum-text-gradient {
+    -webkit-text-fill-color: black !important;
+    background: none !important;
+  }
+}
+
+/* تحسينات إمكانية الوصول */
+@media (prefers-reduced-motion: reduce) {
+  .quantum-particle,
+  .quantum-entangled,
+  .cosmic-pulse,
+  .cosmic-float {
+    animation: none !important;
+  }
+}
+
+/* تحسينات للشاشات عالية الكثافة */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .cosmic-card {
+    border-width: 0.5px;
+  }
+}
+
+/* تحسينات للوضع المظلم */
+@media (prefers-color-scheme: dark) {
+  .cosmic-card {
+    background: rgba(255, 255, 255, 0.05);
+  }
+}
+

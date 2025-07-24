@@ -1,0 +1,8 @@
+{
+  "/_not-found/page": "app/_not-found/page.js",
+  "/discover/page": "app/discover/page.js",
+  "/mcp/page": "app/mcp/page.js",
+  "/rag/page": "app/rag/page.js",
+  "/setting/page": "app/setting/page.js",
+  "/chat/page": "app/chat/page.js"
+}
