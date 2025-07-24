@@ -3,14 +3,6 @@
   "outputDirectory": "dist",
   "framework": null,
   "installCommand": "npm install",
-  "functions": {
-    "app/api/chat/route.js": {
-      "maxDuration": 60
-    },
-    "app/api/debug/route.js": {
-      "maxDuration": 10
-    }
-  },
   "headers": [
     {
       "source": "/api/(.*)",
