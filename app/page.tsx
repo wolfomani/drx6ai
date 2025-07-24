@@ -1,7 +1,9 @@
-"use client"
+import CognitiveChatInterface from "@/components/chat/cognitive-chat-interface";
 
-import ChatInterface from "../client/src/components/chat/chat-interface"
-
-export default function SyntheticV0PageForDeployment() {
-  return <ChatInterface />
+export default function Home() {
+  return (
+    <main className="h-screen">
+      <CognitiveChatInterface />
+    </main>
+  );
 }
