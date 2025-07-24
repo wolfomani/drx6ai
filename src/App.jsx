@@ -10,7 +10,7 @@ import { useMessages } from "./hooks/use-messages"
 import { chatModels } from "./lib/models"
 import "./App.css"
 
-function App() {
+async function App() {
   const [messages, setMessages] = useState([])
   const [selectedModel, setSelectedModel] = useState("together")
   const [isLoading, setIsLoading] = useState(false)
