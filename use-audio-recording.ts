@@ -1,112 +1,73 @@
-import { useState, useCallback, useRef } from 'react'
+"use client"
 
-export interface AudioRecordingState {
-  isRecording: boolean
-  audioBlob: Blob | null
-  audioUrl: string | null
-  duration: number
-  error: string | null
-}
+import { useState, useRef, useEffect, useCallback } from "react"
 
 export function useAudioRecording() {
-  const [state, setState] = useState<AudioRecordingState>({
-    isRecording: false,
-    audioBlob: null,
-    audioUrl: null,
-    duration: 0,
-    error: null
-  })
-
+  const [isRecording, setIsRecording] = useState(false)
+  const [audioBlob, setAudioBlob] = useState<Blob | null>(null)
+  const [audioURL, setAudioURL] = useState<string | null>(null)
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
-  const streamRef = useRef<MediaStream | null>(null)
-  const startTimeRef = useRef<number>(0)
-  const intervalRef = useRef<NodeJS.Timeout | null>(null)
+  const audioChunksRef = useRef<Blob[]>([])
 
   const startRecording = useCallback(async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
-      streamRef.current = stream
+      mediaRecorderRef.current = new MediaRecorder(stream)
+      audioChunksRef.current = []
 
-      const mediaRecorder = new MediaRecorder(stream)
-      mediaRecorderRef.current = mediaRecorder
-
-      const chunks: BlobPart[] = []
-
-      mediaRecorder.ondataavailable = (event) => {
-        if (event.data.size > 0) {
-          chunks.push(event.data)
-        }
+      mediaRecorderRef.current.ondataavailable = (event) => {
+        audioChunksRef.current.push(event.data)
       }
 
-      mediaRecorder.onstop = () => {
-        const audioBlob = new Blob(chunks, { type: 'audio/wav' })
-        const audioUrl = URL.createObjectURL(audioBlob)
-        
-        setState(prev => ({
-          ...prev,
-          audioBlob,
-          audioUrl,
-          isRecording: false
-        }))
+      mediaRecorderRef.current.onstop = () => {
+        const blob = new Blob(audioChunksRef.current, { type: "audio/webm" })
+        setAudioBlob(blob)
+        setAudioURL(URL.createObjectURL(blob))
+        stream.getTracks().forEach((track) => track.stop()) // Stop the microphone stream
       }
 
-      mediaRecorder.start()
-      startTimeRef.current = Date.now()
-
-      // Update duration every second
-      intervalRef.current = setInterval(() => {
-        setState(prev => ({
-          ...prev,
-          duration: Math.floor((Date.now() - startTimeRef.current) / 1000)
-        }))
-      }, 1000)
-
-      setState(prev => ({
-        ...prev,
-        isRecording: true,
-        error: null,
-        duration: 0
-      }))
-    } catch (error) {
-      setState(prev => ({
-        ...prev,
-        error: error instanceof Error ? error.message : 'Failed to start recording'
-      }))
+      mediaRecorderRef.current.start()
+      setIsRecording(true)
+      setAudioBlob(null)
+      setAudioURL(null)
+    } catch (err) {
+      console.error("Error accessing microphone:", err)
+      setIsRecording(false)
     }
   }, [])
 
   const stopRecording = useCallback(() => {
-    if (mediaRecorderRef.current && state.isRecording) {
+    if (mediaRecorderRef.current && isRecording) {
       mediaRecorderRef.current.stop()
-      
-      if (streamRef.current) {
-        streamRef.current.getTracks().forEach(track => track.stop())
-      }
+      setIsRecording(false)
+    }
+  }, [isRecording])
 
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current)
+  const resetRecording = useCallback(() => {
+    setAudioBlob(null)
+    if (audioURL) {
+      URL.revokeObjectURL(audioURL)
+      setAudioURL(null)
+    }
+    audioChunksRef.current = []
+    setIsRecording(false)
+  }, [audioURL])
+
+  useEffect(() => {
+    // Cleanup URL when component unmounts or audioURL changes
+    return () => {
+      if (audioURL) {
+        URL.revokeObjectURL(audioURL)
       }
     }
-  }, [state.isRecording])
-
-  const clearRecording = useCallback(() => {
-    if (state.audioUrl) {
-      URL.revokeObjectURL(state.audioUrl)
-    }
-
-    setState({
-      isRecording: false,
-      audioBlob: null,
-      audioUrl: null,
-      duration: 0,
-      error: null
-    })
-  }, [state.audioUrl])
+  }, [audioURL])
 
   return {
-    ...state,
+    isRecording,
+    audioBlob,
+    audioURL,
     startRecording,
     stopRecording,
-    clearRecording
+    resetRecording,
   }
 }

@@ -1,116 +1,48 @@
-"use client";
+import { openai } from "@ai-sdk/openai"
+import { xai } from "@ai-sdk/xai"
+import { groq } from "@ai-sdk/groq"
+import { fal } from "@fal-ai/serverless"
+import { deepinfra } from "@deepinfra/ai"
 
-interface AIProvider {
-  getName(): string;
-  isAvailable(): boolean;
-  generateResponse(message: string): Promise<string>;
-}
-
-class DeepSeekProvider implements AIProvider {
-  getName(): string {
-    return "DeepSeek R1";
-  }
-
-  isAvailable(): boolean {
-    return true;
-  }
-
-  async generateResponse(message: string): Promise<string> {
-    // Simulate API call delay
-    await new Promise(resolve => setTimeout(resolve, 2000 + Math.random() * 3000));
-    
-    return `مرحباً! أنا DeepSeek R1، نموذج التفكير المتقدم. 
-
-بعد تحليل رسالتك: "${message}"
-
-يمكنني أن أقدم لك إجابة شاملة ومدروسة. أستخدم تقنيات التفكير المتقدم لفهم السياق وتقديم أفضل الحلول.
-
-هل تريد مني التوسع في أي جانب معين من إجابتي؟`;
-  }
-}
-
-class GeminiProvider implements AIProvider {
-  getName(): string {
-    return "Gemini Pro";
-  }
-
-  isAvailable(): boolean {
-    return true;
-  }
-
-  async generateResponse(message: string): Promise<string> {
-    // Simulate faster response
-    await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 2000));
-    
-    return `أهلاً وسهلاً! أنا Gemini Pro من Google.
-
-استفسارك: "${message}"
-
-أقدم لك إجابة سريعة ودقيقة باستخدام أحدث تقنيات الذكاء الاصطناعي. يمكنني مساعدتك في مختلف المجالات من الكتابة إلى التحليل والبرمجة.
-
-كيف يمكنني مساعدتك أكثر؟`;
+export const getModel = (modelId: string) => {
+  switch (modelId) {
+    case "grok-1":
+      return xai("grok-1")
+    case "grok-1.5":
+      return xai("grok-1.5")
+    case "grok-3":
+      return xai("grok-3")
+    case "llama3-8b-8192":
+      return groq("llama3-8b-8192")
+    case "llama3-70b-8192":
+      return groq("llama3-70b-8192")
+    case "mixtral-8x7b-32768":
+      return groq("mixtral-8x7b-32768")
+    case "gemma-7b-it":
+      return groq("gemma-7b-it")
+    case "gpt-4o":
+      return openai("gpt-4o")
+    case "gpt-3.5-turbo":
+      return openai("gpt-3.5-turbo")
+    case "fal-image-gen":
+      return fal("fal-ai/stable-diffusion-v1-5") // Example for Fal, adjust as needed
+    case "deepinfra-llama-2-7b":
+      return deepinfra("meta-llama/llama-2-7b-chat") // Example for DeepInfra
+    default:
+      return xai("grok-1") // Default to grok-1 if no match
   }
 }
 
-class GroqProvider implements AIProvider {
-  getName(): string {
-    return "Groq Lightning";
-  }
-
-  isAvailable(): boolean {
-    return true;
-  }
-
-  async generateResponse(message: string): Promise<string> {
-    // Simulate very fast response
-    await new Promise(resolve => setTimeout(resolve, 500 + Math.random() * 1000));
-    
-    return `⚡ استجابة فائقة السرعة من Groq!
-
-رسالتك: "${message}"
-
-أنا متخصص في الاستجابات السريعة والفعالة. بفضل معالجة الأجهزة المتقدمة، يمكنني تقديم إجابات عالية الجودة في وقت قياسي.
-
-هل تحتاج لمزيد من المعلومات؟`;
-  }
-}
-
-class TogetherProvider implements AIProvider {
-  getName(): string {
-    return "Together AI";
-  }
-
-  isAvailable(): boolean {
-    return true;
-  }
-
-  async generateResponse(message: string): Promise<string> {
-    // Simulate moderate response time
-    await new Promise(resolve => setTimeout(resolve, 1500 + Math.random() * 2500));
-    
-    return `🤝 مرحباً من Together AI!
-
-سؤالك: "${message}"
-
-أستخدم نماذج مفتوحة المصدر لتقديم إجابات مفيدة ومجانية. أؤمن بالذكاء الاصطناعي المتاح للجميع والمدعوم من المجتمع.
-
-كيف يمكنني خدمتك بشكل أفضل؟`;
-  }
-}
-
-export class AIProviderFactory {
-  private static providers: Map<string, AIProvider> = new Map([
-    ['deepseek', new DeepSeekProvider()],
-    ['gemini', new GeminiProvider()],
-    ['groq', new GroqProvider()],
-    ['together', new TogetherProvider()],
-  ]);
-
-  static getProvider(modelId: string): AIProvider | null {
-    return this.providers.get(modelId) || null;
-  }
-
-  static getAllProviders(): Map<string, AIProvider> {
-    return this.providers;
-  }
-}
+export const getAvailableModels = () => [
+  { id: "grok-1", name: "Grok-1", provider: "xAI" },
+  { id: "grok-1.5", name: "Grok-1.5", provider: "xAI" },
+  { id: "grok-3", name: "Grok-3", provider: "xAI" },
+  { id: "llama3-8b-8192", name: "Llama 3 8B", provider: "Groq" },
+  { id: "llama3-70b-8192", name: "Llama 3 70B", provider: "Groq" },
+  { id: "mixtral-8x7b-32768", name: "Mixtral 8x7B", provider: "Groq" },
+  { id: "gemma-7b-it", name: "Gemma 7B", provider: "Groq" },
+  { id: "gpt-4o", name: "GPT-4o", provider: "OpenAI" },
+  { id: "gpt-3.5-turbo", name: "GPT-3.5 Turbo", provider: "OpenAI" },
+  { id: "fal-image-gen", name: "Fal Image Gen", provider: "Fal AI" },
+  { id: "deepinfra-llama-2-7b", name: "Llama 2 7B", provider: "DeepInfra" },
+]

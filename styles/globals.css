@@ -88,3 +88,5 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* This file is not used in the current setup. All global CSS is in app/globals.css */

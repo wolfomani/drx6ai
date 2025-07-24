@@ -1,165 +1,205 @@
-"use client";
+"use client"
 
-import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { MessageSquare, Plus, Trash2, Clock, X } from 'lucide-react';
-import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { useToast } from "@/hooks/use-toast";
+import { useState } from "react"
+import Link from "next/link"
+import { Button } from "@/components/ui/button"
+import { Plus, MessageSquare, Settings, Trash2, LogOut, Menu } from "lucide-react"
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip"
+import { Separator } from "@/components/ui/separator"
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
+import { toast } from "@/components/ui/use-toast"
+import { useRouter, useParams } from "next/navigation"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 
 interface Conversation {
-  id: number;
-  title: string;
-  model: string;
-  createdAt: Date;
-  updatedAt: Date;
+  id: string
+  title: string
+  createdAt: string
 }
 
-interface ConversationSidebarProps {
-  currentConversationId?: number;
-  onConversationSelect: (id: number) => void;
-  onNewConversation: () => void;
-  onClose?: () => void;
-}
+export function ConversationSidebar() {
+  const [isSheetOpen, setIsSheetOpen] = useState(false)
+  const router = useRouter()
+  const params = useParams()
+  const currentConversationId = params.conversationId as string
+  const queryClient = useQueryClient()
 
-export default function ConversationSidebar({ 
-  currentConversationId,
-  onConversationSelect,
-  onNewConversation,
-  onClose
-}: ConversationSidebarProps) {
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
-
-  const { data: conversations = [] } = useQuery<Conversation[]>({
-    queryKey: ["/api/conversations"],
+  const {
+    data: conversations,
+    isLoading,
+    isError,
+  } = useQuery<Conversation[]>({
+    queryKey: ["conversations"],
     queryFn: async () => {
-      const response = await fetch("/api/conversations");
-      if (!response.ok) throw new Error("Failed to fetch conversations");
-      return response.json();
+      const response = await fetch("/api/conversations")
+      if (!response.ok) {
+        throw new Error("Failed to fetch conversations")
+      }
+      return response.json()
     },
-  });
+  })
 
   const deleteConversationMutation = useMutation({
-    mutationFn: async (id: number) => {
+    mutationFn: async (id: string) => {
       const response = await fetch(`/api/conversations/${id}`, {
-        method: 'DELETE',
-      });
-      if (!response.ok) throw new Error("Failed to delete conversation");
-      return response.json();
+        method: "DELETE",
+      })
+      if (!response.ok) {
+        throw new Error("Failed to delete conversation")
+      }
+      return response.json()
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
+      queryClient.invalidateQueries({ queryKey: ["conversations"] })
       toast({
-        title: "تم الحذف",
-        description: "تم حذف المحادثة بنجاح",
-      });
+        title: "Conversation Deleted",
+        description: "The conversation has been successfully deleted.",
+      })
+      if (currentConversationId) {
+        router.push("/chat/new")
+      }
     },
-    onError: () => {
+    onError: (error) => {
       toast({
-        title: "خطأ",
-        description: "فشل في حذف المحادثة",
+        title: "Error",
+        description: `Failed to delete conversation: ${error.message}`,
         variant: "destructive",
-      });
+      })
     },
-  });
+  })
 
-  const formatTime = (date: Date) => {
-    return new Date(date).toLocaleDateString("ar-SA", {
-      day: "numeric",
-      month: "short",
-    });
-  };
+  const handleDeleteConversation = (id: string) => {
+    deleteConversationMutation.mutate(id)
+  }
 
-  const handleDeleteConversation = (e: React.MouseEvent, id: number) => {
-    e.stopPropagation();
-    deleteConversationMutation.mutate(id);
-  };
-
-  return (
-    <div className="w-80 bg-gray-900 border-r border-gray-800 h-full flex flex-col">
-      {/* Header */}
-      <div className="p-4 border-b border-gray-800">
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-lg font-semibold text-white">المحادثات</h2>
-          {onClose && (
+  const sidebarContent = (
+    <div className="flex flex-col h-full bg-dark-surface border-l border-border-dark p-4">
+      <div className="flex items-center justify-between mb-6">
+        <Link href="/" className="flex items-center gap-2">
+          <img src="/drx-logo_1753309522116.png" alt="Dr.X AI Logo" className="h-8 w-8" />
+          <span className="text-xl font-bold text-text-primary">Dr.X AI</span>
+        </Link>
+        <Tooltip>
+          <TooltipTrigger asChild>
             <Button
               variant="ghost"
-              size="sm"
-              onClick={onClose}
-              className="lg:hidden text-gray-400 hover:text-white"
+              size="icon"
+              onClick={() => {
+                router.push("/chat/new")
+                setIsSheetOpen(false) // Close sheet on new chat click
+              }}
+              aria-label="New Chat"
             >
-              <X className="w-4 h-4" />
+              <Plus className="h-5 w-5 text-text-secondary" />
             </Button>
-          )}
-        </div>
-        
-        <Button
-          onClick={onNewConversation}
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-        >
-          <Plus className="w-4 h-4 ml-2" />
-          محادثة جديدة
-        </Button>
+          </TooltipTrigger>
+          <TooltipContent side="right">New Chat</TooltipContent>
+        </Tooltip>
       </div>
 
-      {/* Conversations List */}
-      <ScrollArea className="flex-1">
-        <div className="p-2">
-          {conversations.map((conversation) => (
-            <div
-              key={conversation.id}
-              onClick={() => {
-                onConversationSelect(conversation.id);
-                onClose?.();
-              }}
-              className={`p-3 rounded-lg cursor-pointer transition-all duration-200 mb-2 group ${
-                currentConversationId === conversation.id
-                  ? 'bg-blue-600/20 border border-blue-500/30'
-                  : 'hover:bg-gray-800'
+      <div className="flex-1 overflow-y-auto space-y-2 mb-4">
+        {isLoading && <div className="text-text-secondary">Loading conversations...</div>}
+        {isError && <div className="text-destructive">Error loading conversations.</div>}
+        {conversations?.length === 0 && !isLoading && (
+          <div className="text-text-secondary text-sm">No conversations yet. Start a new one!</div>
+        )}
+        {conversations?.map((conv) => (
+          <div key={conv.id} className="flex items-center justify-between group">
+            <Link
+              href={`/chat/${conv.id}`}
+              className={`flex-1 flex items-center gap-3 p-2 rounded-md transition-colors ${
+                currentConversationId === conv.id
+                  ? "bg-dr-blue text-white"
+                  : "text-text-secondary hover:bg-dark-surface-hover"
               }`}
+              onClick={() => setIsSheetOpen(false)} // Close sheet on conversation click
             >
-              <div className="flex items-start justify-between">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <MessageSquare className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                    <h3 className="text-sm font-medium text-white truncate">
-                      {conversation.title}
-                    </h3>
-                  </div>
-                  <div className="flex items-center gap-2 mt-1">
-                    <Clock className="w-3 h-3 text-gray-500" />
-                    <span className="text-xs text-gray-500">
-                      {formatTime(conversation.updatedAt)}
-                    </span>
-                    <span className="text-xs bg-gray-800 px-2 py-1 rounded-full text-gray-300">
-                      {conversation.model}
-                    </span>
-                  </div>
-                </div>
-                
+              <MessageSquare className="h-4 w-4" />
+              <span className="text-sm truncate">{conv.title || `Untitled Chat ${conv.id.substring(0, 4)}`}</span>
+            </Link>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
                 <Button
                   variant="ghost"
-                  size="sm"
-                  onClick={(e) => handleDeleteConversation(e, conversation.id)}
-                  className="opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-300 w-6 h-6 p-0"
-                  disabled={deleteConversationMutation.isPending}
+                  size="icon"
+                  className="h-8 w-8 text-text-secondary opacity-0 group-hover:opacity-100 transition-opacity"
+                  aria-label={`Delete conversation ${conv.title}`}
                 >
-                  <Trash2 className="w-3 h-3" />
+                  <Trash2 className="h-4 w-4" />
                 </Button>
-              </div>
-            </div>
-          ))}
-          
-          {conversations.length === 0 && (
-            <div className="text-center py-8">
-              <MessageSquare className="w-12 h-12 text-gray-600 mx-auto mb-3" />
-              <p className="text-gray-500 text-sm">لا توجد محادثات بعد</p>
-              <p className="text-xs text-gray-600 mt-1">ابدأ محادثة جديدة للبدء</p>
-            </div>
-          )}
-        </div>
-      </ScrollArea>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This action cannot be undone. This will permanently delete your conversation and remove its data
+                    from our servers.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={() => handleDeleteConversation(conv.id)}>Delete</AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
+        ))}
+      </div>
+
+      <Separator className="my-4 bg-border-dark" />
+
+      <div className="mt-auto space-y-2">
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button variant="ghost" className="w-full justify-start text-text-secondary hover:bg-dark-surface-hover">
+              <Settings className="h-5 w-5 mr-3" />
+              Settings
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="right">Settings</TooltipContent>
+        </Tooltip>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button variant="ghost" className="w-full justify-start text-text-secondary hover:bg-dark-surface-hover">
+              <LogOut className="h-5 w-5 mr-3" />
+              Logout
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="right">Logout</TooltipContent>
+        </Tooltip>
+      </div>
     </div>
-  );
+  )
+
+  return (
+    <TooltipProvider>
+      <>
+        {/* Mobile Sidebar */}
+        <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
+          <SheetTrigger asChild>
+            <Button variant="ghost" size="icon" className="md:hidden absolute top-4 left-4 z-50">
+              <Menu className="h-6 w-6 text-text-primary" />
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="left" className="p-0 w-64 bg-dark-surface border-none">
+            {sidebarContent}
+          </SheetContent>
+        </Sheet>
+
+        {/* Desktop Sidebar */}
+        <div className="hidden md:flex h-full w-full">{sidebarContent}</div>
+      </>
+    </TooltipProvider>
+  )
 }

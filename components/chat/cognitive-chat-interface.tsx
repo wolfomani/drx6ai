@@ -1,262 +1,164 @@
-"use client";
+"use client"
 
-import { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
-import ModelSelector from "./model-selector";
-import MessageList from "./message-list";
-import MessageInput from "./message-input";
-import SuggestionChips from "./suggestion-chips";
-import ReasoningDisplay from "./reasoning-display";
-import ModelStatusIndicator from "./model-status-indicator";
-import ConversationSidebar from "./conversation-sidebar";
-import AIThinkingIndicator from "./ai-thinking-indicator";
-import LoadingOverlay from "@/components/ui/loading-overlay";
-import { useChat } from "@/hooks/use-chat";
-import { Brain, Menu, X } from 'lucide-react';
-import { Button } from "@/components/ui/button";
+import type React from "react"
 
-interface ReasoningStep {
-  id: string;
-  type: 'thinking' | 'analysis' | 'conclusion';
-  content: string;
-  timestamp: Date;
-  confidence?: number;
-}
+import { useState, useEffect, useRef } from "react"
+import { MessageInput } from "./message-input"
+import { MessageList } from "./message-list"
+import { ModelSelector } from "./model-selector"
+import { ModelStatusIndicator } from "./model-status-indicator"
+import { AiThinkingIndicator } from "./ai-thinking-indicator"
+import { ReasoningDisplay } from "./reasoning-display"
+import { SuggestionChips } from "./suggestion-chips"
+import { useChat } from "@/hooks/use-chat"
+import { Button } from "@/components/ui/button"
+import { ArrowLeft, Plus } from "lucide-react"
+import { useRouter, useParams } from "next/navigation"
+import { useQueryClient } from "@tanstack/react-query"
+import { useAudioRecording } from "@/hooks/use-audio-recording"
+import { toast } from "@/components/ui/use-toast"
 
-interface CognitiveChatInterfaceProps {
-  conversationId?: number;
-}
-
-export default function CognitiveChatInterface({ conversationId }: CognitiveChatInterfaceProps) {
-  const router = useRouter();
-  const [selectedModel, setSelectedModel] = useState("deepseek");
-  const [isModelSelectorOpen, setIsModelSelectorOpen] = useState(false);
-  const [reasoningSteps, setReasoningSteps] = useState<ReasoningStep[]>([]);
-  const [isThinking, setIsThinking] = useState(false);
-  const [responseTime, setResponseTime] = useState<number>();
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [thinkingStage, setThinkingStage] = useState<'analyzing' | 'processing' | 'generating' | 'complete'>('analyzing');
+export function CognitiveChatInterface() {
+  const router = useRouter()
+  const params = useParams()
+  const conversationId = params.conversationId as string
+  const queryClient = useQueryClient()
 
   const {
     messages,
+    input,
+    handleInputChange,
+    handleSubmit,
     isLoading,
-    sendMessage,
-    currentConversationId,
-  } = useChat(conversationId, selectedModel);
-
-  const { data: models = [] } = useQuery({
-    queryKey: ["/api/models"],
-    queryFn: async () => {
-      const response = await fetch("/api/models");
-      if (!response.ok) throw new Error("Failed to fetch models");
-      return response.json();
+    error,
+    thinkingProcess,
+    selectedModel,
+    setSelectedModel,
+    regenerateResponse,
+    append,
+    stop,
+  } = useChat({
+    conversationId: conversationId === "new" ? undefined : conversationId,
+    onFinish: (message) => {
+      if (conversationId === "new" && message.conversationId) {
+        router.replace(`/chat/${message.conversationId}`)
+        queryClient.invalidateQueries({ queryKey: ["conversations"] })
+      }
     },
-  });
+  })
 
-  // Simulate reasoning steps for demonstration
+  const { isRecording, startRecording, stopRecording, audioBlob, audioURL, resetRecording } = useAudioRecording()
+
+  const [showReasoning, setShowReasoning] = useState(false)
+  const messagesEndRef = useRef<HTMLDivElement>(null)
+
   useEffect(() => {
-    if (isLoading && ['deepseek', 'gemini', 'together'].includes(selectedModel)) {
-      setIsThinking(true);
-      setReasoningSteps([]);
-      setThinkingStage('analyzing');
-      
-      const steps: ReasoningStep[] = [
-        { 
-          id: '1', 
-          type: 'thinking', 
-          content: 'أحلل السؤال وأفهم السياق المطلوب باستخدام تقنيات التفكير المتقدم...', 
-          timestamp: new Date(), 
-          confidence: 0.85 
-        },
-        { 
-          id: '2', 
-          type: 'analysis', 
-          content: 'أبحث في قاعدة المعرفة والذاكرة طويلة المدى للعثور على المعلومات الأكثر دقة...', 
-          timestamp: new Date(), 
-          confidence: 0.92 
-        },
-        { 
-          id: '3', 
-          type: 'conclusion', 
-          content: 'أصيغ الإجابة بطريقة واضحة ومنطقية مع التأكد من جودة المحتوى...', 
-          timestamp: new Date(), 
-          confidence: 0.98 
-        }
-      ];
-
-      const stages: Array<'analyzing' | 'processing' | 'generating'> = ['analyzing', 'processing', 'generating'];
-      let currentStep = 0;
-      let currentStage = 0;
-
-      const interval = setInterval(() => {
-        if (currentStage < stages.length) {
-          setThinkingStage(stages[currentStage]);
-          currentStage++;
-        }
-        
-        if (currentStep < steps.length) {
-          setReasoningSteps(prev => [...prev, steps[currentStep]]);
-          currentStep++;
-        } else {
-          clearInterval(interval);
-          setIsThinking(false);
-          setThinkingStage('complete');
-        }
-      }, 1200);
-
-      return () => clearInterval(interval);
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" })
     }
-  }, [isLoading, selectedModel]);
+  }, [messages])
 
-  const handleSendMessage = async (message: string, attachments?: any[]) => {
-    const startTime = Date.now();
-    await sendMessage(message, attachments);
-    setResponseTime(Date.now() - startTime);
-  };
+  useEffect(() => {
+    if (error) {
+      toast({
+        title: "Error",
+        description: error,
+        variant: "destructive",
+      })
+    }
+  }, [error])
 
-  const handleSuggestionClick = (prompt: string) => {
-    handleSendMessage(prompt);
-  };
+  useEffect(() => {
+    if (audioBlob) {
+      // Here you would typically send the audioBlob to your API for transcription
+      // For now, we'll just log it and reset
+      console.log("Audio recorded:", audioBlob)
+      // You might want to add a loading state here while transcription happens
+      append({ role: "user", content: "Transcribing audio..." }) // Placeholder
+      // In a real app, you'd send audioBlob to an API, get text, then append the text message
+      // For demonstration, let's simulate a transcription result
+      setTimeout(() => {
+        append({ role: "user", content: `(Audio transcription: "This is a simulated transcription of your audio.")` })
+        resetRecording()
+      }, 2000)
+    }
+  }, [audioBlob, append, resetRecording])
 
-  const handleNewConversation = () => {
-    router.push("/");
-  };
+  const handleNewChat = () => {
+    router.push("/chat/new")
+  }
 
-  const handleConversationSelect = (id: number) => {
-    router.push(`/chat/${id}`);
-  };
+  const handleRegenerate = () => {
+    if (messages.length > 0) {
+      regenerateResponse(messages[messages.length - 1])
+    }
+  }
 
-  const selectedModelData = models.find((model: any) => model.id === selectedModel);
+  const handleStop = () => {
+    stop()
+  }
+
+  const handleSend = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    handleSubmit(e)
+  }
+
+  const handleSuggestionClick = (suggestion: string) => {
+    append({ role: "user", content: suggestion })
+  }
 
   return (
-    <div className="flex h-full bg-gray-950">
-      {/* Mobile Sidebar Overlay */}
-      {isSidebarOpen && (
-        <div 
-          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
-          onClick={() => setIsSidebarOpen(false)}
-        />
-      )}
+    <div className="flex flex-col h-full bg-dark-bg text-text-primary">
+      <header className="flex items-center justify-between p-4 border-b border-border-dark">
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" size="icon" onClick={() => router.push("/")} className="md:hidden">
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <h1 className="text-xl font-semibold">
+            {conversationId === "new" ? "New Chat" : `Chat ${conversationId.substring(0, 8)}...`}
+          </h1>
+        </div>
+        <div className="flex items-center gap-2">
+          <ModelSelector selectedModel={selectedModel} onSelectModel={setSelectedModel} />
+          <Button variant="ghost" size="icon" onClick={handleNewChat} aria-label="New Chat">
+            <Plus className="h-5 w-5" />
+          </Button>
+        </div>
+      </header>
 
-      {/* Conversation Sidebar */}
-      <div className={`${
-        isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
-      } lg:translate-x-0 fixed lg:relative z-50 transition-transform duration-300`}>
-        <ConversationSidebar
-          currentConversationId={currentConversationId}
-          onConversationSelect={handleConversationSelect}
-          onNewConversation={handleNewConversation}
-          onClose={() => setIsSidebarOpen(false)}
-        />
-      </div>
+      <main className="flex-1 overflow-y-auto p-4 space-y-4">
+        <MessageList messages={messages} />
+        <div ref={messagesEndRef} />
+      </main>
 
-      {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col min-w-0">
-        {/* Header */}
-        <header className="bg-gray-900 border-b border-gray-800 px-4 py-3 sticky top-0 z-30">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              {/* Mobile Menu Button */}
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setIsSidebarOpen(true)}
-                className="lg:hidden text-gray-400 hover:text-white"
-              >
-                <Menu className="w-5 h-5" />
-              </Button>
-
-              {/* Dr.X Logo */}
-              <div className="relative">
-                <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center font-bold text-white shadow-lg">
-                  Dr.X
-                </div>
-                {isLoading && (
-                  <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
-                )}
-              </div>
-              
-              <div>
-                <h1 className="text-lg font-semibold text-white flex items-center gap-2">
-                  <Brain className="w-5 h-5 text-blue-500" />
-                  Dr.X AI Chat
-                </h1>
-                <p className="text-xs text-gray-400">واجهة ذكية مع عرض التفكير الداخلي</p>
-              </div>
-            </div>
-            
-            <div className="flex items-center gap-3">
-              {/* Model Status */}
-              {selectedModelData && (
-                <ModelStatusIndicator 
-                  model={selectedModelData} 
-                  isActive={isLoading}
-                  responseTime={responseTime}
-                />
-              )}
-              
-              {/* Model Selector */}
-              <ModelSelector
-                models={models}
-                selectedModel={selectedModel}
-                onModelChange={setSelectedModel}
-                isOpen={isModelSelectorOpen}
-                onToggle={() => setIsModelSelectorOpen(!isModelSelectorOpen)}
-              />
-            </div>
-          </div>
-        </header>
-
-        {/* Main Content */}
-        <div className="flex-1 flex flex-col overflow-hidden">
-          {/* Suggestion Chips */}
-          {messages.length === 0 && !isLoading && (
-            <SuggestionChips onSuggestionClick={handleSuggestionClick} />
-          )}
-
-          {/* AI Thinking Indicator */}
-          {isThinking && ['deepseek', 'gemini', 'together'].includes(selectedModel) && (
-            <div className="px-4 py-2">
-              <AIThinkingIndicator
-                stage={thinkingStage}
-                message="نموذج التفكير المتقدم يحلل طلبك بعمق..."
-                progress={Math.min((reasoningSteps.length / 3) * 100, 100)}
-              />
-            </div>
-          )}
-
-          {/* Reasoning Display */}
-          {(reasoningSteps.length > 0 || isThinking) && ['deepseek', 'gemini', 'together'].includes(selectedModel) && (
-            <div className="px-4">
-              <ReasoningDisplay 
-                steps={reasoningSteps} 
-                isThinking={isThinking}
-                model={selectedModelData?.name || selectedModel}
-              />
-            </div>
-          )}
-
-          {/* Messages */}
-          <div className="flex-1 overflow-hidden">
-            <MessageList 
-              messages={messages} 
-              isLoading={isLoading}
-              selectedModel={selectedModelData}
-            />
-          </div>
-          
-          {/* Input Area */}
-          <MessageInput 
-            onSendMessage={handleSendMessage}
-            selectedModel={selectedModelData}
-            disabled={isLoading}
-          />
+      <footer className="p-4 border-t border-border-dark bg-dark-surface">
+        <div className="flex items-center justify-between mb-2">
+          <AiThinkingIndicator isThinking={isLoading} />
+          <ModelStatusIndicator modelName={selectedModel} />
         </div>
 
-        {/* Loading Overlay */}
-        <LoadingOverlay isVisible={isLoading && !isThinking} />
-      </div>
+        {thinkingProcess && (
+          <ReasoningDisplay
+            thinkingProcess={thinkingProcess}
+            showReasoning={showReasoning}
+            onToggleShowReasoning={() => setShowReasoning(!showReasoning)}
+          />
+        )}
+
+        <SuggestionChips onSelectSuggestion={handleSuggestionClick} />
+
+        <MessageInput
+          input={input}
+          handleInputChange={handleInputChange}
+          handleSend={handleSend}
+          handleRegenerate={handleRegenerate}
+          handleStop={handleStop}
+          isLoading={isLoading}
+          isRecording={isRecording}
+          startRecording={startRecording}
+          stopRecording={stopRecording}
+        />
+      </footer>
     </div>
-  );
+  )
 }

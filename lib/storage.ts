@@ -1,78 +1,64 @@
-"use client";
+import { neon } from "@neondatabase/serverless"
+import { drizzle } from "drizzle-orm/neon-http"
+import { conversations, messages } from "./schema"
+import { eq } from "drizzle-orm"
 
-interface Conversation {
-  id: number;
-  title: string;
-  model: string;
-  createdAt: Date;
-  updatedAt: Date;
+const sql = neon(process.env.DATABASE_URL!)
+const db = drizzle(sql)
+
+export async function getConversations() {
+  return db.select().from(conversations).orderBy(conversations.updatedAt).execute()
 }
 
-interface Message {
-  id: number;
-  conversationId: number;
-  role: 'user' | 'assistant';
-  content: string;
-  attachments: any[];
-  createdAt: Date;
+export async function getConversation(id: string) {
+  return db.select().from(conversations).where(eq(conversations.id, id)).limit(1).execute()
 }
 
-class MemoryStorage {
-  private conversations: Map<number, Conversation> = new Map();
-  private messages: Map<number, Message[]> = new Map();
-  private nextConversationId = 1;
-  private nextMessageId = 1;
-
-  async getConversations(): Promise<Conversation[]> {
-    return Array.from(this.conversations.values())
-      .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
-  }
-
-  async getConversation(id: number): Promise<Conversation | null> {
-    return this.conversations.get(id) || null;
-  }
-
-  async createConversation(data: Omit<Conversation, 'id'>): Promise<Conversation> {
-    const conversation: Conversation = {
-      id: this.nextConversationId++,
-      ...data,
-    };
-    this.conversations.set(conversation.id, conversation);
-    this.messages.set(conversation.id, []);
-    return conversation;
-  }
-
-  async updateConversation(id: number, data: Partial<Conversation>): Promise<Conversation | null> {
-    const conversation = this.conversations.get(id);
-    if (!conversation) return null;
-
-    const updated = { ...conversation, ...data };
-    this.conversations.set(id, updated);
-    return updated;
-  }
-
-  async deleteConversation(id: number): Promise<boolean> {
-    const deleted = this.conversations.delete(id);
-    this.messages.delete(id);
-    return deleted;
-  }
-
-  async getMessages(conversationId: number): Promise<Message[]> {
-    return this.messages.get(conversationId) || [];
-  }
-
-  async createMessage(data: Omit<Message, 'id'>): Promise<Message> {
-    const message: Message = {
-      id: this.nextMessageId++,
-      ...data,
-    };
-
-    const conversationMessages = this.messages.get(data.conversationId) || [];
-    conversationMessages.push(message);
-    this.messages.set(data.conversationId, conversationMessages);
-
-    return message;
-  }
+export async function createConversation(title: string) {
+  const [newConversation] = await db.insert(conversations).values({ title }).returning().execute()
+  return newConversation
 }
 
-export const storage = new MemoryStorage();
+export async function updateConversation(id: string, title: string) {
+  const [updatedConversation] = await db
+    .update(conversations)
+    .set({ title, updatedAt: new Date() })
+    .where(eq(conversations.id, id))
+    .returning()
+    .execute()
+  return updatedConversation
+}
+
+export async function deleteConversation(id: string) {
+  await db.delete(conversations).where(eq(conversations.id, id)).execute()
+}
+
+export async function getMessages(conversationId: string) {
+  return db
+    .select()
+    .from(messages)
+    .where(eq(messages.conversationId, conversationId))
+    .orderBy(messages.createdAt)
+    .execute()
+}
+
+export async function addMessage(
+  conversationId: string,
+  role: "user" | "assistant",
+  content: string,
+  thinkingProcess?: string,
+  model?: string,
+) {
+  const [newMessage] = await db
+    .insert(messages)
+    .values({
+      conversationId,
+      role,
+      content,
+      thinkingProcess,
+      model,
+    })
+    .returning()
+    .execute()
+  return newMessage
+}
