@@ -2,7 +2,6 @@ import { openai } from "@ai-sdk/openai"
 import { xai } from "@ai-sdk/xai"
 import { groq } from "@ai-sdk/groq"
 import { fal } from "@fal-ai/serverless"
-import { deepinfra } from "@deepinfra/ai"
 
 export const getModel = (modelId: string) => {
   switch (modelId) {
@@ -25,9 +24,7 @@ export const getModel = (modelId: string) => {
     case "gpt-3.5-turbo":
       return openai("gpt-3.5-turbo")
     case "fal-image-gen":
-      return fal("fal-ai/stable-diffusion-v1-5") // Example for Fal, adjust as needed
-    case "deepinfra-llama-2-7b":
-      return deepinfra("meta-llama/llama-2-7b-chat") // Example for DeepInfra
+      return fal("fal-ai/stable-diffusion-v1-5")
     default:
       return xai("grok-1") // Default to grok-1 if no match
   }
@@ -44,5 +41,163 @@ export const getAvailableModels = () => [
   { id: "gpt-4o", name: "GPT-4o", provider: "OpenAI" },
   { id: "gpt-3.5-turbo", name: "GPT-3.5 Turbo", provider: "OpenAI" },
   { id: "fal-image-gen", name: "Fal Image Gen", provider: "Fal AI" },
-  { id: "deepinfra-llama-2-7b", name: "Llama 2 7B", provider: "DeepInfra" },
 ]
+
+// AI Provider interfaces and classes
+export interface AIProvider {
+  getName(): string
+  isAvailable(): boolean
+  generateResponse(message: string): Promise<string>
+}
+
+export class XAIProvider implements AIProvider {
+  getName(): string {
+    return "xAI"
+  }
+
+  isAvailable(): boolean {
+    return !!process.env.XAI_API_KEY
+  }
+
+  async generateResponse(message: string): Promise<string> {
+    try {
+      const { generateText } = await import("ai")
+      const model = xai("grok-3")
+
+      const { text } = await generateText({
+        model,
+        prompt: message,
+      })
+
+      return text
+    } catch (error) {
+      console.error("XAI Provider Error:", error)
+      throw new Error("فشل في الحصول على استجابة من xAI")
+    }
+  }
+}
+
+export class GroqProvider implements AIProvider {
+  private modelId: string
+
+  constructor(modelId = "llama3-70b-8192") {
+    this.modelId = modelId
+  }
+
+  getName(): string {
+    return "Groq"
+  }
+
+  isAvailable(): boolean {
+    return !!process.env.GROQ_API_KEY
+  }
+
+  async generateResponse(message: string): Promise<string> {
+    try {
+      const { generateText } = await import("ai")
+      const model = groq(this.modelId)
+
+      const { text } = await generateText({
+        model,
+        prompt: message,
+      })
+
+      return text
+    } catch (error) {
+      console.error("Groq Provider Error:", error)
+      throw new Error("فشل في الحصول على استجابة من Groq")
+    }
+  }
+}
+
+export class OpenAIProvider implements AIProvider {
+  private modelId: string
+
+  constructor(modelId = "gpt-4o") {
+    this.modelId = modelId
+  }
+
+  getName(): string {
+    return "OpenAI"
+  }
+
+  isAvailable(): boolean {
+    return !!process.env.OPENAI_API_KEY
+  }
+
+  async generateResponse(message: string): Promise<string> {
+    try {
+      const { generateText } = await import("ai")
+      const model = openai(this.modelId)
+
+      const { text } = await generateText({
+        model,
+        prompt: message,
+      })
+
+      return text
+    } catch (error) {
+      console.error("OpenAI Provider Error:", error)
+      throw new Error("فشل في الحصول على استجابة من OpenAI")
+    }
+  }
+}
+
+export class FalProvider implements AIProvider {
+  getName(): string {
+    return "Fal AI"
+  }
+
+  isAvailable(): boolean {
+    return !!process.env.FAL_KEY
+  }
+
+  async generateResponse(message: string): Promise<string> {
+    try {
+      // For image generation, this would be different
+      // This is a placeholder implementation
+      return `تم إنشاء صورة بناءً على: ${message}`
+    } catch (error) {
+      console.error("Fal Provider Error:", error)
+      throw new Error("فشل في الحصول على استجابة من Fal AI")
+    }
+  }
+}
+
+export class AIProviderFactory {
+  static getProvider(modelId: string): AIProvider | null {
+    if (modelId.startsWith("grok")) {
+      return new XAIProvider()
+    } else if (modelId.includes("llama") || modelId.includes("mixtral") || modelId.includes("gemma")) {
+      return new GroqProvider(modelId)
+    } else if (modelId.startsWith("gpt")) {
+      return new OpenAIProvider(modelId)
+    } else if (modelId.includes("fal")) {
+      return new FalProvider()
+    }
+
+    return null
+  }
+
+  static getAvailableProviders(): AIProvider[] {
+    const providers: AIProvider[] = []
+
+    if (process.env.XAI_API_KEY) {
+      providers.push(new XAIProvider())
+    }
+
+    if (process.env.GROQ_API_KEY) {
+      providers.push(new GroqProvider())
+    }
+
+    if (process.env.OPENAI_API_KEY) {
+      providers.push(new OpenAIProvider())
+    }
+
+    if (process.env.FAL_KEY) {
+      providers.push(new FalProvider())
+    }
+
+    return providers
+  }
+}

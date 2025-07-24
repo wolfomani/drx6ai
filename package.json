@@ -11,13 +11,11 @@
     "start": "next start"
   },
   "dependencies": {
-    "@ai-sdk/fal": "^0.0.10",
     "@ai-sdk/groq": "latest",
     "@ai-sdk/openai": "latest",
     "@ai-sdk/xai": "latest",
     "@aws-sdk/client-rds-data": "latest",
     "@cloudflare/workers-types": "latest",
-    "@deepinfra/ai": "latest",
     "@electric-sql/pglite": "latest",
     "@fal-ai/serverless": "latest",
     "@libsql/client": "latest",
