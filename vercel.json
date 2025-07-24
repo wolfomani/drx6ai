@@ -1,13 +1,13 @@
 {
   "version": 2,
-  "framework": null,
+  "framework": "nextjs",
   "buildCommand": "pnpm build",
   "devCommand": "pnpm dev",
   "installCommand": "pnpm install",
   "outputDirectory": "dist/public",
   "functions": {
     "server/index.ts": {
-      "runtime": "nodejs20.x",
+      "runtime": "vercel-nodejs@3.0.0",
       "maxDuration": 30
     }
   },
