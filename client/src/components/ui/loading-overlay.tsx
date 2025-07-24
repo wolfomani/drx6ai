@@ -1,12 +1,12 @@
-import { Loader2 } from "lucide-react"
+import { Loader2 } from "lucide-react";
 
 interface LoadingOverlayProps {
-  isVisible: boolean
-  message?: string
+  isVisible: boolean;
+  message?: string;
 }
 
 export default function LoadingOverlay({ isVisible, message = "جاري المعالجة..." }: LoadingOverlayProps) {
-  if (!isVisible) return null
+  if (!isVisible) return null;
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
@@ -15,5 +15,5 @@ export default function LoadingOverlay({ isVisible, message = "جاري المع
         <span className="text-text-primary">{message}</span>
       </div>
     </div>
-  )
+  );
 }
