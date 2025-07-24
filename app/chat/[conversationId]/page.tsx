@@ -1,17 +1,19 @@
-import CognitiveChatInterface from "@/components/chat/cognitive-chat-interface";
+export default function HomePage() {
+  import CognitiveChatInterface from "@/components/chat/cognitive-chat-interface";
 
-interface ChatPageProps {
-  params: {
-    conversationId: string;
-  };
-}
+  interface ChatPageProps {
+    params: {
+      conversationId: string;
+    };
+  }
 
-export default function ChatPage({ params }: ChatPageProps) {
-  const conversationId = parseInt(params.conversationId);
+  export default function ChatPage({ params }: ChatPageProps) {
+    const conversationId = parseInt(params.conversationId);
   
-  return (
-    <main className="h-screen">
-      <CognitiveChatInterface conversationId={conversationId} />
-    </main>
-  );
+    return (
+      <main className="h-screen">
+        <CognitiveChatInterface conversationId={conversationId} />
+      </main>
+    );
+  }
 }
